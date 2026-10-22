@@ -8,3 +8,4 @@ coverage/
 backend/data/
 .tide-pack/
 infra/tidecloak/.secrets
+infra/tidecloak/.realm_name
