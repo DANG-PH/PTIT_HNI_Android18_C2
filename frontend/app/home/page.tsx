@@ -450,7 +450,12 @@ export default function HomePage() {
                 <p>{t('vault.decryptingTitles')}</p>
               </div>
             ) : docs.length === 0 && locked ? null : docs.length === 0 ? (
-              <p className="sub" style={{ marginBottom: 0 }}>{t('vault.empty')}</p>
+              <div className="vault-empty">
+                <p className="sub">{t('vault.empty')}</p>
+                <button className="btn btn-primary btn-sm" onClick={() => addDocs(DEMO_DOCS)} disabled={busy}>
+                  {t('vault.loadDemo')}
+                </button>
+              </div>
             ) : (
               <ul className="doc-list">
                 {docs.map((d) => (
@@ -526,7 +531,14 @@ export default function HomePage() {
                     <img src="/logo.png" alt="" width={56} height={56} />
                     <h3>{t('ask.emptyTitle')}</h3>
                     <p>{t('ask.intro')}</p>
-                    <span className="pill">{t('ask.emptyHint')}</span>
+                    {vaultState === 'idle' && storedCount === 0 ? (
+                      <button className="btn btn-primary" onClick={() => addDocs(DEMO_DOCS)}>
+                        {t('vault.loadDemo')}
+                      </button>
+                    ) : (
+                      <span className="pill">{t('ask.emptyHint')}</span>
+                    )}
+                    <p className="chat-history">{t('ask.history')}</p>
                   </div>
                 )}
                 {turns.map((t) => (
