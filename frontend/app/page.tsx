@@ -4,6 +4,7 @@ import { useCallback, useEffect, type ReactNode } from 'react'
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { ThemeToggle } from '@/app/components/ThemeToggle'
+import { DemoVideo } from '@/app/components/DemoVideo'
 import { DEMO_DOCS, DEMO_QUESTIONS } from './lib/demo-docs'
 import { LangSwitch, useI18n, type I18nKey } from './lib/i18n'
 
@@ -61,9 +62,7 @@ export default function LandingPage() {
           <p className="lead">{t('landing.lead')}</p>
           <div className="row">
             {signIn}
-            <a className="btn btn-lg" href="#how">
-              {t('nav.how')}
-            </a>
+            <DemoVideo />
           </div>
           <p className="muted small hero-note">{t('landing.noPassword')}</p>
         </div>

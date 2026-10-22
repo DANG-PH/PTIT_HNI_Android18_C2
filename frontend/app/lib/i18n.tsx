@@ -92,6 +92,8 @@ const en = {
 
   'tab.ask': 'Ask AI',
   'tab.receipts': 'Disclosure receipts',
+  'landing.watchDemo': 'Watch the 2-minute demo',
+  'landing.closeDemo': 'Close video',
   'stats.label': 'Vault at a glance',
   'stats.sealed': 'Sealed documents',
   'stats.keys': 'Keys on our server',
@@ -293,6 +295,8 @@ const vi: Record<I18nKey, string> = {
 
   'tab.ask': 'Hỏi AI',
   'tab.receipts': 'Biên nhận tiết lộ',
+  'landing.watchDemo': 'Xem demo 2 phút',
+  'landing.closeDemo': 'Đóng video',
   'stats.label': 'Tổng quan kho',
   'stats.sealed': 'Tài liệu đã niêm phong',
   'stats.keys': 'Khóa trên máy chủ của chúng tôi',

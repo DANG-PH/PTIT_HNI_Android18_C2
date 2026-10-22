@@ -30,11 +30,18 @@ Guided demo: seal a synthetic vault, ask about the surgery and approve, then run
 
 | | |
 |---|---|
-| ![AI asks for 3 of 7 documents and answers with citations](docs/screenshots/answer.png) | ![Hijacked AI: export blocked, link stripped, extra requests flagged](docs/screenshots/hijacked-ai.png) |
+| ![Guided demo, trust strip: 7 sealed documents, 0 keys on our server](docs/screenshots/home.png) | ![The AI asks for 3 of 7 documents and answers with citations](docs/screenshots/answer.png) |
+| ![Names and ID numbers masked in the browser: exactly what the AI received](docs/screenshots/masked.png) | ![Hijacked AI: export blocked, link stripped, extra requests flagged](docs/screenshots/hijacked-ai.png) |
 | ![Operator's decrypt attempt refused by 20 of 20 Tide nodes](docs/screenshots/operator-refused.png) | ![Root-credential role grant parked as a pending change request](docs/screenshots/governance.png) |
 
 ## Setup
 
-**Try the live demo:** open https://ntk.dangpham.id.vn, choose **Sign in with Tide → Create an account**, and follow the four-step **Guided demo** (all data is synthetic). A ready-made account with operator access is listed in our submission form.
+**Try the live demo:** open https://ntk.dangpham.id.vn → **Sign in with Tide** and use the shared demo account (synthetic data only, operator access for step 4):
+
+| Username | Password |
+|---|---|
+| `linh-ntk-ziyxp` | `Ga0gC7FNHdFnIrlxShj2` |
+
+Then follow the four-step **Guided demo** at the top of the page. You can also choose **Create an account** to use your own Tide identity (new-account creation depends on Tide's network being reachable).
 
 Run it yourself: see [docs/SETUP.md](docs/SETUP.md).

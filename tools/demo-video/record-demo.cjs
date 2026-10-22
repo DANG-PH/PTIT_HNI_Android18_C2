@@ -60,7 +60,7 @@ async function signIn(page, r, user, pass) {
   L.mark('home');
   await lp.locator('.guide-step').first().waitFor({ timeout: 60000 });
   // Wait for the vault to finish decrypting titles before deciding whether it needs a reset.
-  await lp.waitForFunction(() => !document.querySelector('aside .spinner'), null, { timeout: 180000 });
+  await lp.waitForFunction(() => !document.querySelector('aside .spinner, aside .ring-working'), null, { timeout: 180000 });
   await lp.waitForTimeout(1500);
   const restart = lp.getByRole('button', { name: /restart demo/i });
   if (await lp.locator('.doc').count() && await restart.isEnabled().catch(() => false)) {
@@ -165,7 +165,8 @@ async function signIn(page, r, user, pass) {
   const actx = await mk();
   const ap = await actx.newPage();
   const A = recorder('admin', ap, Date.now());
-  await ap.goto(BASE + '/', { waitUntil: 'networkidle' });
+  await ap.goto(BASE + '/', { waitUntil: 'domcontentloaded', timeout: 90000 });
+  await ap.waitForTimeout(2500);
   await signIn(ap, A, process.env.ADMIN_USER, process.env.ADMIN_PASS);
   await A.click(ap.getByRole('link', { name: /operator console/i }).first());
   await ap.locator('tbody tr').first().waitFor({ timeout: 60000 });
@@ -184,7 +185,7 @@ async function signIn(page, r, user, pass) {
     await row.scrollIntoViewIfNeeded();
     facts.refusal = await row.locator('.alert').innerText();
     A.mark('refused');
-    await ap.waitForTimeout(5500);
+    await ap.waitForTimeout(6000);
     await ap.screenshot({ path: path.join(out, 'shot-refused.png') });
   }
   const rogue = ap.getByRole('button', { name: /run rogue agent/i });
@@ -199,7 +200,7 @@ async function signIn(page, r, user, pass) {
 
   // Governance: the pending change request filed with the server's root credential
   try {
-    await ap.goto(CONSOLE, { waitUntil: 'networkidle' });
+    await ap.goto(CONSOLE, { waitUntil: 'domcontentloaded', timeout: 90000 });
     await ap.waitForTimeout(3000);
     if (await ap.locator('input#sign_in-input_name').count()) await tideLogin(ap, process.env.ADMIN_USER, process.env.ADMIN_PASS);
     await ap.getByText('Change Requests', { exact: true }).first().waitFor({ timeout: 90000 });
