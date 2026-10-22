@@ -46,7 +46,7 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 
 ## 4. Giải pháp
 
-1. **Mã hóa đầu cuối tại trình duyệt bằng TideCloak.** Tài liệu (cả tiêu đề lẫn nội dung) được mã hóa ngay trên thiết bị người dùng; máy chủ chỉ lưu **bản mã**. Hệ thống **không có master key**: thẩm quyền giải mã được phân tán trên mạng **20 node ORK độc lập** của Tide (ngưỡng 14/20) và chỉ hình thành khi chính chủ đăng nhập với đúng vai trò.
+1. **Mã hóa đầu cuối tại trình duyệt bằng TideCloak.** Tài liệu (cả tiêu đề lẫn nội dung) được mã hóa ngay trên thiết bị người dùng; máy chủ chỉ lưu **bản mã**. Hệ thống **không có master key**: thẩm quyền giải mã được phân tán trên mạng **20 node ORK độc lập** của Tide (ngưỡng 14/20) và chỉ hình thành khi chính chủ đăng nhập với đúng vai trò. Người dùng có thể dán nội dung hoặc chọn/kéo thả tệp **PDF, TXT, MD, CSV**: văn bản được trích ngay trên trình duyệt (PDF dùng pdf.js), bản thân tệp không bao giờ rời thiết bị.
 2. **AI chỉ được xem danh mục.** Khi nhận câu hỏi, Gemini chỉ thấy **tiêu đề** tài liệu và gửi **yêu cầu truy cập** kèm lý do, ví dụ: *"Cần hợp đồng bảo hiểm và báo giá bệnh viện để tính phần chi trả."*
 3. **Người dùng phê duyệt từng tài liệu.** Trình duyệt giải mã đúng các tài liệu được duyệt (qua mạng ORK) và gửi cho Gemini để trả lời **riêng câu hỏi đó**; bản rõ không được lưu lại.
 4. **Biên nhận tiết lộ (Disclosure receipts).** Mỗi lần AI tiếp cận dữ liệu đều được ghi nhận: tài liệu nào, thời điểm nào, cho câu hỏi nào. Câu hỏi trong biên nhận cũng được mã hóa bằng khóa của người dùng.
@@ -94,8 +94,10 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 
 ## 7. Giới hạn của giải pháp
 
-- Nội dung **đã được phê duyệt** sẽ được gửi tới nhà cung cấp mô hình AI cho đúng câu hỏi đó. NeedToKnow loại bỏ **quyền truy cập thường trực và đơn phương**, không loại bỏ hoàn toàn việc AI tiếp xúc dữ liệu. Hướng phát triển: tự động che thông tin định danh trước khi gửi, hoặc vận hành mô hình trong môi trường confidential computing.
+- Nội dung **đã được phê duyệt** sẽ được gửi tới nhà cung cấp mô hình AI cho đúng câu hỏi đó. NeedToKnow loại bỏ **quyền truy cập thường trực và đơn phương**, không loại bỏ hoàn toàn việc AI tiếp xúc dữ liệu. Tên và số định danh đã được che ngay trên trình duyệt trước khi gửi; hướng phát triển tiếp theo là vận hành mô hình trong môi trường confidential computing.
 - **Tiêu đề tài liệu** được chia sẻ với AI để lập kế hoạch truy cập, và điều này được thể hiện rõ trong biên nhận.
+- **Câu trả lời của AI không được lưu** (chúng được suy ra từ tài liệu đã niêm phong); tải lại trang thì khung chat trống, còn câu hỏi cũ nằm trong biên nhận dưới dạng mã hóa.
+- **Ảnh scan** (PDF không có lớp chữ, ảnh chụp) chưa được hỗ trợ; cần OCR chạy ngay trên trình duyệt.
 - Nếu thiết bị hoặc phiên đăng nhập của người dùng bị chiếm quyền, kẻ tấn công có quyền tương đương người dùng. Tide bảo vệ danh tính của phiên, không bảo vệ thiết bị.
 
 ---
