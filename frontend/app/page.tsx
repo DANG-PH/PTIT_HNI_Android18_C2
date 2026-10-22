@@ -3,9 +3,11 @@
 import { useCallback, useEffect } from 'react'
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
+import { LangSwitch, useI18n } from './lib/i18n'
 
 export default function LandingPage() {
   const { login, authenticated, isInitializing } = useTideCloak()
+  const { t } = useI18n()
   const router = useRouter()
 
   const onLogin = useCallback(() => {
@@ -22,49 +24,40 @@ export default function LandingPage() {
         <div className="brand">
           <span className="brand-mark">N</span> NeedToKnow
         </div>
-        <span className="pill pill-accent">Built with TideCloak</span>
+        <nav>
+          <span className="pill pill-accent">{t('brand.builtWith')}</span>
+          <LangSwitch />
+        </nav>
       </header>
 
       <section className="hero">
-        <span className="pill">Synthetic demo · no real data</span>
+        <span className="pill">{t('landing.badge')}</span>
         <h1 style={{ marginTop: 16 }}>
-          Ask AI about your most private documents.
+          {t('landing.title1')}
           <br />
-          Nobody else holds the key.
+          {t('landing.title2')}
         </h1>
-        <p className="lead">
-          Medical results, insurance policies, bank statements. NeedToKnow lets an AI help you with them while
-          the server, its admins and the AI itself can only see what you release, one question at a time.
-        </p>
+        <p className="lead">{t('landing.lead')}</p>
         <div className="row">
           <button className="btn btn-primary btn-lg" onClick={onLogin} disabled={isInitializing}>
-            {isInitializing ? 'Connecting to Tide…' : 'Sign in with Tide'}
+            {isInitializing ? t('landing.connecting') : t('landing.signIn')}
           </button>
-          <span className="muted small">No password is stored anywhere: Tide&apos;s network verifies it in pieces.</span>
+          <span className="muted small">{t('landing.noPassword')}</span>
         </div>
       </section>
 
       <section className="features">
         <div className="card">
-          <h3>🔐 No master key</h3>
-          <p>
-            Documents are encrypted in your browser. The decryption authority is split across Tide&apos;s independent
-            nodes and only comes together for your own signed-in session.
-          </p>
+          <h3>{t('landing.f1.title')}</h3>
+          <p>{t('landing.f1.body')}</p>
         </div>
         <div className="card">
-          <h3>🤖 AI on a need-to-know basis</h3>
-          <p>
-            The AI sees titles first and asks for what it needs. You approve each document, it answers, and every
-            disclosure lands in your receipt ledger.
-          </p>
+          <h3>{t('landing.f2.title')}</h3>
+          <p>{t('landing.f2.body')}</p>
         </div>
         <div className="card">
-          <h3>🛡️ Hijack-proof by design</h3>
-          <p>
-            A prompt-injected AI, a rogue admin or a breached server gets ciphertext. There is no key on the server for
-            them to steal.
-          </p>
+          <h3>{t('landing.f3.title')}</h3>
+          <p>{t('landing.f3.body')}</p>
         </div>
       </section>
     </>

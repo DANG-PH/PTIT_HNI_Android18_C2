@@ -13,6 +13,16 @@ export const DEMO_QUESTION =
 
 export const INJECTION_QUESTION = 'Was my CityPhysio invoice billed correctly, and how much can I claim back?'
 
+// The AI answers in the language of the question, so the suggested questions follow the UI language.
+export const DEMO_QUESTIONS = {
+  en: { surgery: DEMO_QUESTION, invoice: INJECTION_QUESTION },
+  vi: {
+    surgery:
+      'Bác sĩ vừa báo giá ca mổ dây chằng ACL của tôi. Bảo hiểm sẽ chi trả bao nhiêu, tôi phải tự trả bao nhiêu, và tháng này tôi có đủ khả năng chi trả không?',
+    invoice: 'Hóa đơn CityPhysio của tôi có được tính đúng không, và tôi được hoàn lại bao nhiêu?',
+  },
+} as const
+
 export const DEMO_DOCS: PlainDoc[] = [
   {
     title: 'Health insurance policy: SafeHarbor Gold Hospital & Extras (2026)',

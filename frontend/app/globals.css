@@ -67,6 +67,13 @@ code, .mono { font-family: var(--mono); font-size: 0.85em; }
 }
 .topbar nav { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
+.lang-switch { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.lang-switch button {
+  border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 12px; font-weight: 700;
+  padding: 5px 9px; cursor: pointer;
+}
+.lang-switch button.active { background: var(--accent); color: var(--accent-text); }
+
 .page { max-width: 1240px; margin: 0 auto; padding: 24px; }
 .grid { display: grid; grid-template-columns: 360px 1fr; gap: 20px; align-items: start; }
 @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .page { padding: 16px; } }

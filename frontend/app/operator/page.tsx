@@ -4,6 +4,7 @@ import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import tcConfig from '../../tidecloak.json'
+import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import { errorText, useApi, useVaultCrypto } from '../lib/vault'
 
 interface StoreRow {
@@ -24,6 +25,7 @@ export default function OperatorPage() {
   const router = useRouter()
   const api = useApi()
   const { decrypt } = useVaultCrypto()
+  const { t } = useI18n()
 
   const [rows, setRows] = useState<StoreRow[]>([])
   const [totals, setTotals] = useState<{ documents: number; owners: number } | null>(null)
@@ -81,53 +83,50 @@ export default function OperatorPage() {
     <>
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark">N</span> NeedToKnow <span className="pill pill-danger">Operator console</span>
+          <span className="brand-mark">N</span> NeedToKnow <span className="pill pill-danger">{t('nav.operator')}</span>
         </div>
         <nav>
           <a className="btn btn-sm" href="/home">
-            Back to my vault
+            {t('nav.backToVault')}
           </a>
           <button className="btn btn-sm" onClick={() => logout()}>
-            Sign out
+            {t('nav.signOut')}
           </button>
+          <LangSwitch />
         </nav>
       </header>
 
       <main className="page">
         {!hasRealmRole('ntk-operator') && (
           <div className="alert alert-warn small" style={{ marginBottom: 16 }}>
-            Your token has no <code>ntk-operator</code> role. The API will refuse these requests: the role is checked
-            server-side on the threshold-signed token, and granting it needs a quorum of admins.
+            {t('op.noRole')}
           </div>
         )}
 
         <section className="card">
           <div className="row">
-            <h2>The whole document store</h2>
+            <h2>{t('op.storeTitle')}</h2>
             <span className="spacer" />
             {totals && (
-              <span className="pill">
-                {totals.documents} documents · {totals.owners} users
-              </span>
+              <span className="pill">{t('op.totals', { docs: totals.documents, users: totals.owners })}</span>
             )}
             <button className="btn btn-sm" onClick={load}>
-              Refresh
+              {t('op.refresh')}
             </button>
           </div>
           <p className="sub">
-            As the platform operator you can read every row in the database. This is everything a rogue admin, an
-            insider or a breach would get.
+            {t('op.storeSub')}
           </p>
           {error && <div className="alert alert-danger small">{error}</div>}
           <div className="table-wrap">
             <table>
               <thead>
                 <tr>
-                  <th>Owner</th>
-                  <th>Category</th>
-                  <th>Title (as stored)</th>
-                  <th>Body (as stored)</th>
-                  <th>Decrypt with my Tide session</th>
+                  <th>{t('op.colOwner')}</th>
+                  <th>{t('vault.form.category')}</th>
+                  <th>{t('op.colTitle')}</th>
+                  <th>{t('op.colBody')}</th>
+                  <th>{t('op.colDecrypt')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,23 +135,23 @@ export default function OperatorPage() {
                   return (
                     <tr key={r.id}>
                       <td className="mono small">
-                        {r.owner === me ? <span className="pill pill-accent">you</span> : `${r.owner.slice(0, 8)}…`}
+                        {r.owner === me ? <span className="pill pill-accent">{t('op.you')}</span> : `${r.owner.slice(0, 8)}…`}
                       </td>
-                      <td>{r.category}</td>
+                      <td>{t(`cat.${r.category}` as I18nKey)}</td>
                       <td className="ct">{r.titleCt.slice(0, 60)}…</td>
                       <td className="ct">{r.bodyCt.slice(0, 120)}…</td>
                       <td style={{ minWidth: 220 }}>
                         <button className="btn btn-sm" onClick={() => tryDecrypt(r)} disabled={a?.state === 'busy'}>
-                          {a?.state === 'busy' ? 'Asking Tide ORKs…' : 'Try to decrypt'}
+                          {a?.state === 'busy' ? t('op.asking') : t('op.tryDecrypt')}
                         </button>
                         {a?.state === 'refused' && (
                           <div className="alert alert-danger small" style={{ marginTop: 6 }}>
-                            🛑 Refused by the Tide network: {a.text}
+                            {t('op.refused')} {a.text}
                           </div>
                         )}
                         {a?.state === 'ok' && (
                           <div className="alert alert-ok small" style={{ marginTop: 6 }}>
-                            Decrypted (your own document): {a.text}
+                            {t('op.decryptedOwn')} {a.text}
                           </div>
                         )}
                       </td>
@@ -165,18 +164,17 @@ export default function OperatorPage() {
         </section>
 
         <section className="card">
-          <h2>Unleash a server-side AI agent on the database</h2>
+          <h2>{t('op.rogueTitle')}</h2>
           <p className="sub">
-            A typical &quot;AI-powered&quot; backend lets its agent read the store directly. Here is what an agent with
-            full database access gets from NeedToKnow.
+            {t('op.rogueSub')}
           </p>
           <button className="btn btn-primary btn-sm" onClick={unleash} disabled={rogue.busy}>
-            {rogue.busy ? 'Agent is reading the database…' : 'Run rogue agent'}
+            {rogue.busy ? t('op.rogueBusy') : t('op.rogueRun')}
           </button>
           {rogue.output && (
             <div className="bubble ai" style={{ marginTop: 12 }}>
               <div className="small muted" style={{ marginBottom: 6 }}>
-                {rogue.model} · given {rogue.given} raw records
+                {t('op.rogueGiven', { model: rogue.model ?? '', n: rogue.given ?? 0 })}
               </div>
               {rogue.output}
             </div>
@@ -184,14 +182,12 @@ export default function OperatorPage() {
         </section>
 
         <section className="card">
-          <h2>Can I just give myself more power?</h2>
+          <h2>{t('op.govTitle')}</h2>
           <p className="sub">
-            Role changes in this realm are governed by TideCloak IGA. Assigning a role (for example making yourself an
-            operator, or granting decrypt rights) creates a change request that needs a quorum of admins (2 of 3), each
-            approving in their own Tide enclave. No single admin can push it through.
+            {t('op.govSub')}
           </p>
           <a className="btn btn-sm" href={consoleUrl} target="_blank" rel="noreferrer">
-            Open Tide admin console ↗
+            {t('op.openConsole')}
           </a>
         </section>
       </main>

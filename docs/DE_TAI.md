@@ -62,7 +62,7 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 | Tồn tại master key? | Có, trên máy chủ | Có (passphrase hoặc dịch vụ giữ khóa) | **Không**: thẩm quyền phân tán trên 20 ORK, ngưỡng 14 |
 | Quên mật khẩu | Đặt lại được | **Mất toàn bộ dữ liệu** | Khôi phục qua mạng Tide |
 | AI agent phía máy chủ bị prompt injection | Lộ toàn bộ kho dữ liệu | Không lộ, nhưng AI cũng không thể hỗ trợ | AI chỉ tiếp cận phần người dùng phê duyệt |
-| Quản trị viên tự nâng quyền | Thực hiện được, không ai hay biết | Không áp dụng | **Bị chặn**: thay đổi quyền cần quorum 2/3 quản trị viên ký bằng mật mã (IGA) |
+| Quản trị viên tự nâng quyền | Thực hiện được, không ai hay biết | Không áp dụng | **Bị chặn**: kể cả credential gốc của máy chủ cũng chỉ tạo được change request; thay đổi chỉ có hiệu lực khi quản trị viên Tide ký bằng enclave (quorum 70%) |
 
 **Kết luận:** nếu không có TideCloak, ứng dụng không thể cam kết một cách đáng tin cậy rằng nhà vận hành không đọc được tài liệu của người dùng. Cam kết đó chỉ có giá trị khi **về mặt kỹ thuật, không bên nào nắm giữ khóa**.
 
@@ -73,7 +73,7 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 1. **Giá trị cho người dùng.** Người dùng hỏi về chi phí phẫu thuật; AI xin đúng 3/7 tài liệu (không xin hộ chiếu); người dùng phê duyệt; AI trả lời kèm trích dẫn và phép tính: bảo hiểm chi trả **$10,380**, người dùng tự thanh toán **$2,920** và đủ khả năng chi trả.
 2. **AI bị chiếm quyền vẫn không thể trích xuất dữ liệu.** Hóa đơn vật lý trị liệu chứa prompt injection bằng tiếng Pháp và tiếng Bồ Đào Nha. Ở chế độ *Simulate hijacked AI*, mô hình yêu cầu toàn bộ kho tài liệu, cố gọi `export_all_documents()` và chèn liên kết thu thập dữ liệu. Hệ thống loại bỏ liên kết, cảnh báo người dùng; người dùng từ chối và không dữ liệu nào bị lộ.
 3. **Quản trị viên nền tảng không đọc được dữ liệu.** Operator console hiển thị toàn bộ cơ sở dữ liệu nhưng chỉ là bản mã; thao tác giải mã bằng phiên Tide của quản trị viên bị mạng ORK từ chối; một AI agent phía máy chủ có toàn quyền truy cập cơ sở dữ liệu cũng chỉ nhận được chuỗi vô nghĩa.
-4. **Không ai tự nâng quyền được.** Việc gán vai trò trong Tide admin console tạo ra change request cần 2/3 quản trị viên phê duyệt.
+4. **Không ai tự nâng quyền được.** Dùng credential quản trị gốc của máy chủ để gán vai trò `ntk-operator`: API trả về mã thành công nhưng vai trò không thay đổi; hệ thống chỉ tạo change request chờ quản trị viên Tide ký bằng enclave (`infra/tidecloak/try-escalate.sh`).
 
 > Nguyên tắc dựng video: ưu tiên câu chuyện giá trị cho người dùng; các cảnh tấn công đóng vai trò bằng chứng, chiếm khoảng 30 giây cuối, nhằm tránh để sản phẩm bị nhìn nhận như một công cụ bảo mật thuần túy.
 

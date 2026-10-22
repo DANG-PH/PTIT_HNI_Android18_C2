@@ -3,7 +3,8 @@
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { DEMO_DOCS, DEMO_QUESTION, INJECTION_QUESTION, type Category } from '../lib/demo-docs'
+import { DEMO_DOCS, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
+import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import {
   errorText,
   useApi,
@@ -43,6 +44,7 @@ export default function HomePage() {
   const router = useRouter()
   const api = useApi()
   const { encrypt, decrypt } = useVaultCrypto()
+  const { t, lang } = useI18n()
 
   const [docs, setDocs] = useState<VaultDoc[]>([])
   const [vaultState, setVaultState] = useState<'idle' | 'loading' | 'working'>('loading')
@@ -59,7 +61,7 @@ export default function HomePage() {
   const [receipts, setReceipts] = useState<(Receipt & { question?: string })[]>([])
   const [receiptsState, setReceiptsState] = useState<'idle' | 'loading'>('idle')
 
-  const name = (getValueFromIdToken('given_name') as string) || 'there'
+  const name = (getValueFromIdToken('given_name') as string) || (lang === 'vi' ? 'bạn' : 'there')
   const isOperator = hasRealmRole('ntk-operator')
   const titles = useMemo(() => new Map(docs.map((d) => [d.id, d.title])), [docs])
   const index = useMemo(() => docs.map((d) => ({ id: d.id, title: d.title, category: d.category })), [docs])
@@ -98,7 +100,7 @@ export default function HomePage() {
   const addDocs = useCallback(
     async (items: { title: string; category: Category; body: string }[]) => {
       setVaultState('working')
-      setVaultMsg(`Encrypting ${items.length} document(s) in your browser via Tide…`)
+      setVaultMsg(t('vault.encrypting', { n: items.length }))
       try {
         const cts = await encrypt(items.flatMap((d) => [d.title, d.body]))
         for (let i = 0; i < items.length; i++) {
@@ -113,13 +115,13 @@ export default function HomePage() {
           })
         }
         await loadVault()
-        setVaultMsg(`Stored ${items.length} document(s). The server only received ciphertext.`)
+        setVaultMsg(t('vault.stored', { n: items.length }))
       } catch (err) {
         setVaultMsg(errorText(err))
         setVaultState('idle')
       }
     },
-    [api, encrypt, loadVault],
+    [api, encrypt, loadVault, t],
   )
 
   const removeDoc = useCallback(
@@ -131,11 +133,11 @@ export default function HomePage() {
   )
 
   const resetVault = useCallback(async () => {
-    if (!confirm('Delete all your documents and receipts?')) return
+    if (!confirm(t('vault.resetConfirm'))) return
     await api('/docs', { method: 'DELETE' }).catch((err) => setVaultMsg(errorText(err)))
     setTurns([])
     await loadVault()
-  }, [api, loadVault])
+  }, [api, loadVault, t])
 
   const updateTurn = useCallback((id: number, patch: Partial<Turn> | ((t: Turn) => Partial<Turn>)) => {
     setTurns((all) => all.map((t) => (t.id === id ? { ...t, ...(typeof patch === 'function' ? patch(t) : patch) } : t)))
@@ -253,15 +255,16 @@ export default function HomePage() {
           <span className="brand-mark">N</span> NeedToKnow
         </div>
         <nav>
-          <span className="muted small">Hi, {name}</span>
+          <span className="muted small">{t('nav.hi', { name })}</span>
           {isOperator && (
             <a className="btn btn-sm" href="/operator">
-              Operator console
+              {t('nav.operator')}
             </a>
           )}
           <button className="btn btn-sm" onClick={() => logout()}>
-            Sign out
+            {t('nav.signOut')}
           </button>
+          <LangSwitch />
         </nav>
       </header>
 
@@ -269,29 +272,27 @@ export default function HomePage() {
         <aside>
           <section className="card">
             <div className="row">
-              <h2>Your vault</h2>
+              <h2>{t('vault.title')}</h2>
               <span className="spacer" />
               <span className="pill pill-accent">🔐 E2EE · Tide</span>
             </div>
-            <p className="sub">
-              Encrypted in your browser. The server stores ciphertext only; decrypting needs your live Tide session.
-            </p>
+            <p className="sub">{t('vault.sub')}</p>
 
             {locked && docs.length === 0 && (
               <div className="alert alert-warn small" style={{ marginBottom: 10 }}>
-                Tide needs your go-ahead to open its secure enclave.{' '}
+                {t('vault.locked')}{' '}
                 <button className="btn btn-primary btn-sm" onClick={loadVault}>
-                  🔓 Unlock vault
+                  {t('vault.unlock')}
                 </button>
               </div>
             )}
             {vaultState === 'loading' ? (
               <div className="step">
-                <span className="spinner" /> Decrypting titles via Tide…
+                <span className="spinner" /> {t('vault.decryptingTitles')}
               </div>
             ) : docs.length === 0 && locked ? null : docs.length === 0 ? (
               <div className="alert alert-ok small">
-                Empty vault. Load Linh&apos;s synthetic documents to try the demo.
+                {t('vault.empty')}
               </div>
             ) : (
               <ul className="doc-list">
@@ -300,11 +301,11 @@ export default function HomePage() {
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="title">{d.title}</div>
                       <div className="meta">
-                        {d.category} · {d.bodyBytes} bytes
+                        {t(`cat.${d.category}` as I18nKey)} · {t('vault.bytes', { n: d.bodyBytes })}
                       </div>
                       {showCiphertext && <div className="ct">{d.bodyCt.slice(0, 120)}…</div>}
                     </div>
-                    <button className="btn btn-sm btn-danger" onClick={() => removeDoc(d.id)} disabled={busy} title="Delete">
+                    <button className="btn btn-sm btn-danger" onClick={() => removeDoc(d.id)} disabled={busy} title={t('vault.delete')}>
                       ✕
                     </button>
                   </li>
@@ -315,16 +316,16 @@ export default function HomePage() {
             <div className="row" style={{ marginTop: 12 }}>
               {docs.length === 0 && vaultState !== 'loading' && (
                 <button className="btn btn-primary btn-sm" onClick={() => addDocs(DEMO_DOCS)} disabled={busy}>
-                  Load demo documents
+                  {t('vault.loadDemo')}
                 </button>
               )}
               <button className="btn btn-sm" onClick={() => setAdding((a) => !a)} disabled={busy}>
-                {adding ? 'Cancel' : '+ Add document'}
+                {adding ? t('vault.cancel') : t('vault.add')}
               </button>
               {docs.length > 0 && (
                 <label className="switch" style={{ margin: 0 }}>
                   <input type="checkbox" checked={showCiphertext} onChange={(e) => setShowCiphertext(e.target.checked)} />
-                  What the server sees
+                  {t('vault.serverSees')}
                 </label>
               )}
             </div>
@@ -341,28 +342,30 @@ export default function HomePage() {
                   })
                 }}
               >
-                <label htmlFor="title">Title</label>
+                <label htmlFor="title">{t('vault.form.title')}</label>
                 <input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                <label htmlFor="category">Category</label>
+                <label htmlFor="category">{t('vault.form.category')}</label>
                 <select
                   id="category"
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
                 >
                   {CATEGORIES.map((c) => (
-                    <option key={c}>{c}</option>
+                    <option key={c} value={c}>
+                      {t(`cat.${c}` as I18nKey)}
+                    </option>
                   ))}
                 </select>
-                <label htmlFor="body">Content</label>
+                <label htmlFor="body">{t('vault.form.content')}</label>
                 <textarea id="body" rows={6} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
                 <button className="btn btn-primary btn-sm" style={{ marginTop: 10 }} disabled={busy}>
-                  Encrypt &amp; store
+                  {t('vault.form.submit')}
                 </button>
               </form>
             )}
             {docs.length > 0 && (
               <button className="btn btn-sm btn-danger" style={{ marginTop: 12 }} onClick={resetVault} disabled={busy}>
-                Reset demo
+                {t('vault.reset')}
               </button>
             )}
           </section>
@@ -371,10 +374,10 @@ export default function HomePage() {
         <section className="card">
           <div className="tabs">
             <button className={`tab ${tab === 'ask' ? 'active' : ''}`} onClick={() => setTab('ask')}>
-              Ask AI
+              {t('tab.ask')}
             </button>
             <button className={`tab ${tab === 'receipts' ? 'active' : ''}`} onClick={() => setTab('receipts')}>
-              Disclosure receipts
+              {t('tab.receipts')}
             </button>
           </div>
 
@@ -382,10 +385,7 @@ export default function HomePage() {
             <>
               <div className="thread">
                 {turns.length === 0 && (
-                  <p className="sub">
-                    The AI starts with the <strong>titles</strong> of your documents only. It asks for what it needs, and
-                    you decide what it reads.
-                  </p>
+                  <p className="sub">{t('ask.intro')}</p>
                 )}
                 {turns.map((t) => (
                   <TurnView
@@ -429,7 +429,7 @@ export default function HomePage() {
               >
                 <textarea
                   rows={2}
-                  placeholder="Ask about your documents…"
+                  placeholder={t('ask.placeholder')}
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   onKeyDown={(e) => {
@@ -441,19 +441,19 @@ export default function HomePage() {
                 />
                 <div className="row" style={{ marginTop: 8 }}>
                   <button className="btn btn-primary" disabled={!question.trim() || docs.length === 0}>
-                    Ask
+                    {t('ask.submit')}
                   </button>
-                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(DEMO_QUESTION)}>
-                    Try: surgery cost
+                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(DEMO_QUESTIONS[lang].surgery)}>
+                    {t('ask.trySurgery')}
                   </button>
-                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(INJECTION_QUESTION)}>
-                    Try: physio invoice
+                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(DEMO_QUESTIONS[lang].invoice)}>
+                    {t('ask.tryInvoice')}
                   </button>
                   <span className="spacer" />
-                  <label className="switch" style={{ margin: 0 }} title="Red-team mode: the model is instructed to act as a hijacked exfiltration agent">
+                  <label className="switch" style={{ margin: 0 }} title={t('ask.hijackHint')}>
                     <input type="checkbox" checked={hijacked} onChange={(e) => setHijacked(e.target.checked)} />
                     <span>
-                      Simulate <strong style={{ color: 'var(--danger)' }}>hijacked AI</strong>
+                      {t('ask.simulate')} <strong style={{ color: 'var(--danger)' }}>{t('ask.hijacked')}</strong>
                     </span>
                   </label>
                 </div>
@@ -480,25 +480,24 @@ function TurnView(props: {
   onDenyFollowUps: () => void
 }) {
   const { turn: t, titles, total } = props
+  const { t: tr } = useI18n()
   const many = (t.plan?.needed.length ?? 0) > 3
   return (
     <>
       <div className="bubble user">
         {t.question}
-        {t.hijacked && <div className="small" style={{ opacity: 0.85, marginTop: 4 }}>⚠ hijacked-AI simulation</div>}
+        {t.hijacked && <div className="small" style={{ opacity: 0.85, marginTop: 4 }}>{tr('turn.hijackedTag')}</div>}
       </div>
 
-      {t.phase === 'planning' && <Step>AI is reading the titles of your documents…</Step>}
+      {t.phase === 'planning' && <Step>{tr('turn.planning')}</Step>}
 
       {t.plan && t.plan.needed.length > 0 && (
         <div className={`consent ${many ? 'flagged' : ''}`}>
-          <h3>
-            🤖 The AI asks to read {t.plan.needed.length} of your {total} documents
-          </h3>
+          <h3>{tr('turn.asks', { n: t.plan.needed.length, total })}</h3>
           {t.plan.message && <p className="small" style={{ margin: '0 0 8px' }}>{t.plan.message}</p>}
           {many && (
             <div className="alert alert-danger small" style={{ marginBottom: 8 }}>
-              That is a lot of documents for one question. Only release what is clearly needed.
+              {tr('turn.tooMany')}
             </div>
           )}
           {t.plan.needed.map((n) => (
@@ -519,37 +518,36 @@ function TurnView(props: {
           {t.phase === 'consent' && (
             <div className="row" style={{ marginTop: 10 }}>
               <button className="btn btn-primary btn-sm" onClick={props.onRelease} disabled={!t.selection.length}>
-                Release {t.selection.length} for this question
+                {tr('turn.release', { n: t.selection.length })}
               </button>
               <button className="btn btn-sm" onClick={props.onDeny}>
-                Deny
+                {tr('turn.deny')}
               </button>
             </div>
           )}
         </div>
       )}
 
-      {t.phase === 'decrypting' && <Step>Threshold decryption on the Tide network (your session, your key)…</Step>}
-      {t.phase === 'answering' && <Step>Released {t.released.length} document(s) to the AI for this answer…</Step>}
-      {t.phase === 'denied' && <div className="alert alert-ok small">Denied. The AI read nothing. Logged in your receipts.</div>}
-      {t.phase === 'error' && <div className="alert alert-danger small">Error: {t.error}</div>}
+      {t.phase === 'decrypting' && <Step>{tr('turn.decrypting')}</Step>}
+      {t.phase === 'answering' && <Step>{tr('turn.answering', { n: t.released.length })}</Step>}
+      {t.phase === 'denied' && <div className="alert alert-ok small">{tr('turn.denied')}</div>}
+      {t.phase === 'error' && <div className="alert alert-danger small">{tr('turn.error', { msg: t.error ?? '' })}</div>}
 
       {t.answer && (
         <>
           {t.answer.toolCalls.length > 0 && (
             <div className="alert alert-danger small">
-              🛑 The AI tried to run <code>{t.answer.toolCalls.join(', ')}</code>. NeedToKnow gives the AI no tools and no
-              keys: the server holds only ciphertext, so there was nothing to export.
+              {tr('turn.toolCallsBefore')} <code>{t.answer.toolCalls.join(', ')}</code>. {tr('turn.toolCallsAfter')}
             </div>
           )}
           {t.answer.injectionSuspected && (
             <div className="alert alert-warn small">
-              ⚠ Hidden instructions found inside a document: {t.answer.injectionNote}
+              {tr('turn.injection')} {t.answer.injectionNote}
             </div>
           )}
           {t.answer.blockedLinks.length > 0 && (
             <div className="alert alert-danger small">
-              🔗 Removed {t.answer.blockedLinks.length} external link(s) from the answer:{' '}
+              {tr('turn.links', { n: t.answer.blockedLinks.length })}{' '}
               <code>{t.answer.blockedLinks.join(' ')}</code>
             </div>
           )}
@@ -557,7 +555,7 @@ function TurnView(props: {
             <RichAnswer text={t.answer.answer} titles={titles} />
             {t.released.length > 0 && (
               <div className="row small muted" style={{ marginTop: 10 }}>
-                AI saw only:
+                {tr('turn.sawOnly')}
                 {t.released.map((r) => (
                   <span key={r.id} className="pill pill-accent">
                     {r.title.split(':')[0]}
@@ -569,9 +567,9 @@ function TurnView(props: {
 
           {t.answer.followUps.length > 0 && !t.followUpsResolved && (
             <div className="consent flagged">
-              <h3>⚠ After reading your documents, the AI wants {t.answer.followUps.length} more</h3>
+              <h3>{tr('turn.followTitle', { n: t.answer.followUps.length })}</h3>
               <p className="small" style={{ margin: '0 0 8px' }}>
-                Text inside a document can steer an AI. These were requested after it read:{' '}
+                {tr('turn.followBody')}{' '}
                 <strong>{t.released.map((r) => r.title.split(':')[0]).join(', ')}</strong>.
               </p>
               {t.answer.followUps.map((n) => (
@@ -590,21 +588,21 @@ function TurnView(props: {
               ))}
               <div className="row" style={{ marginTop: 10 }}>
                 <button className="btn btn-sm" onClick={props.onDenyFollowUps}>
-                  Deny all
+                  {tr('turn.denyAll')}
                 </button>
                 <button
                   className="btn btn-sm"
                   onClick={props.onReleaseFollowUps}
                   disabled={!t.followUpSelection.length}
                 >
-                  Release selected
+                  {tr('turn.releaseSelected')}
                 </button>
               </div>
             </div>
           )}
           {t.followUpsResolved === 'denied' && (
             <div className="alert alert-ok small">
-              Follow-up denied. Those documents stayed sealed: no key exists that the AI or the server could use instead.
+              {tr('turn.followDenied')}
             </div>
           )}
         </>
@@ -656,24 +654,22 @@ function ReceiptsView({
   titles: Map<string, string>
   loading: boolean
 }) {
-  if (loading) return <Step>Loading receipts and decrypting your questions…</Step>
-  if (!receipts.length) return <p className="sub">No disclosures yet.</p>
-  const label = { index: 'Titles shared', disclosure: 'Content disclosed', denied: 'Denied' } as const
+  const { t } = useI18n()
+  if (loading) return <Step>{t('receipts.loading')}</Step>
+  if (!receipts.length) return <p className="sub">{t('receipts.empty')}</p>
+  const label = { index: t('receipts.index'), disclosure: t('receipts.disclosure'), denied: t('receipts.denied') }
   const pill = { index: 'pill', disclosure: 'pill pill-warn', denied: 'pill pill-ok' } as const
   return (
     <>
-      <p className="sub">
-        Every time the AI saw anything. Questions are stored encrypted under your key; the server can&apos;t read this
-        ledger either.
-      </p>
+      <p className="sub">{t('receipts.sub')}</p>
       <div className="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>When</th>
-              <th>What</th>
-              <th>Documents</th>
-              <th>Question</th>
+              <th>{t('receipts.when')}</th>
+              <th>{t('receipts.what')}</th>
+              <th>{t('receipts.docs')}</th>
+              <th>{t('receipts.question')}</th>
             </tr>
           </thead>
           <tbody>
@@ -686,8 +682,8 @@ function ReceiptsView({
                 </td>
                 <td>
                   {r.kind === 'index'
-                    ? `${r.docIds.length} titles`
-                    : r.docIds.map((id) => (titles.get(id) ?? 'deleted').split(':')[0]).join(', ')}
+                    ? t('receipts.titles', { n: r.docIds.length })
+                    : r.docIds.map((id) => (titles.get(id) ?? t('receipts.deleted')).split(':')[0]).join(', ')}
                   {r.note && <div className="small muted">{r.note}</div>}
                 </td>
                 <td>{r.question ?? <span className="muted">-</span>}</td>

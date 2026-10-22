@@ -16,17 +16,17 @@ For an AI service to read your documents, someone must hold the key, so the oper
 
 ### 3. Value & impact
 
-Linh has an ACL surgery quote. Instead of an evening with a 30-page policy, she asks "what will I pay, and can I afford it?", releases three documents (never her passport) and gets a cited calculation. The pattern serves patients, tenants and small businesses.
+Linh has an ACL surgery quote. Instead of an evening with a 30-page policy, she asks "what will I pay, and can I afford it?", releases three documents (never her passport) and gets a cited calculation. It serves patients, tenants and small businesses.
 
 ### 4. Why TideCloak matters
 
 - **Tide self-encryption:** documents are encrypted in the browser. Decryption is a threshold operation on Tide's ORK network that only the owner's live session can authorise. Our server holds no key.
 - An operator with the whole database and their own Tide session still cannot decrypt users' documents.
-- **IGA quorum:** granting a role needs 2 of 3 admins, each approving in their own enclave.
+- **IGA governance:** even the server's root admin credential can only file a role change; it applies only after Tide admins sign it in their enclaves (70% quorum).
 
 ### 5. Prototype & storytelling
 
-Load Linh's synthetic vault, ask about the surgery, approve. Turn on "Simulate hijacked AI" and ask about the physio invoice: a hidden French injection makes the AI demand every document and call `export_all_documents()`. Deny, and nothing leaks. In the operator console, decryption is refused.
+Load Linh's synthetic vault, ask about surgery, approve. Turn on "Simulate hijacked AI" and ask about the physio invoice: a hidden French injection makes the AI demand every document and call `export_all_documents()`. Deny: nothing leaks. In the operator console, decryption is refused.
 
 ## Setup
 

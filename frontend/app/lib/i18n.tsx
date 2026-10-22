@@ -1,0 +1,333 @@
+'use client'
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+
+export type Lang = 'en' | 'vi'
+const STORAGE_KEY = 'ntk-lang'
+
+const en = {
+  'brand.builtWith': 'Built with TideCloak',
+  'nav.hi': 'Hi, {name}',
+  'nav.operator': 'Operator console',
+  'nav.signOut': 'Sign out',
+  'nav.backToVault': 'Back to my vault',
+
+  'landing.badge': 'Synthetic demo · no real data',
+  'landing.title1': 'Ask AI about your most private documents.',
+  'landing.title2': 'Nobody else holds the key.',
+  'landing.lead':
+    'Medical results, insurance policies, bank statements. NeedToKnow lets an AI help you with them while the server, its admins and the AI itself can only see what you release, one question at a time.',
+  'landing.connecting': 'Connecting to Tide…',
+  'landing.signIn': 'Sign in with Tide',
+  'landing.noPassword': "No password is stored anywhere: Tide's network verifies it in pieces.",
+  'landing.f1.title': '🔐 No master key',
+  'landing.f1.body':
+    "Documents are encrypted in your browser. The decryption authority is split across Tide's independent nodes and only comes together for your own signed-in session.",
+  'landing.f2.title': '🤖 AI on a need-to-know basis',
+  'landing.f2.body':
+    'The AI sees titles first and asks for what it needs. You approve each document, it answers, and every disclosure lands in your receipt ledger.',
+  'landing.f3.title': '🛡️ Hijack-proof by design',
+  'landing.f3.body':
+    'A prompt-injected AI, a rogue admin or a breached server gets ciphertext. There is no key on the server for them to steal.',
+
+  'vault.title': 'Your vault',
+  'vault.sub': 'Encrypted in your browser. The server stores ciphertext only; decrypting needs your live Tide session.',
+  'vault.locked': 'Tide needs your go-ahead to open its secure enclave.',
+  'vault.unlock': '🔓 Unlock vault',
+  'vault.decryptingTitles': 'Decrypting titles via Tide…',
+  'vault.empty': "Empty vault. Load Linh's synthetic documents to try the demo.",
+  'vault.bytes': '{n} bytes',
+  'vault.delete': 'Delete',
+  'vault.loadDemo': 'Load demo documents',
+  'vault.cancel': 'Cancel',
+  'vault.add': '+ Add document',
+  'vault.serverSees': 'What the server sees',
+  'vault.form.title': 'Title',
+  'vault.form.category': 'Category',
+  'vault.form.content': 'Content',
+  'vault.form.submit': 'Encrypt & store',
+  'vault.reset': 'Reset demo',
+  'vault.resetConfirm': 'Delete all your documents and receipts?',
+  'vault.encrypting': 'Encrypting {n} document(s) in your browser via Tide…',
+  'vault.stored': 'Stored {n} document(s). The server only received ciphertext.',
+
+  'cat.health': 'health',
+  'cat.insurance': 'insurance',
+  'cat.finance': 'finance',
+  'cat.legal': 'legal',
+  'cat.identity': 'identity',
+  'cat.other': 'other',
+
+  'tab.ask': 'Ask AI',
+  'tab.receipts': 'Disclosure receipts',
+  'ask.intro': 'The AI starts with the titles of your documents only. It asks for what it needs, and you decide what it reads.',
+  'ask.placeholder': 'Ask about your documents…',
+  'ask.submit': 'Ask',
+  'ask.trySurgery': 'Try: surgery cost',
+  'ask.tryInvoice': 'Try: physio invoice',
+  'ask.hijackHint': 'Red-team mode: the model is instructed to act as a hijacked exfiltration agent',
+  'ask.simulate': 'Simulate',
+  'ask.hijacked': 'hijacked AI',
+
+  'turn.hijackedTag': '⚠ hijacked-AI simulation',
+  'turn.planning': 'AI is reading the titles of your documents…',
+  'turn.asks': '🤖 The AI asks to read {n} of your {total} documents',
+  'turn.tooMany': 'That is a lot of documents for one question. Only release what is clearly needed.',
+  'turn.release': 'Release {n} for this question',
+  'turn.deny': 'Deny',
+  'turn.decrypting': 'Threshold decryption on the Tide network (your session, your key)…',
+  'turn.answering': 'Released {n} document(s) to the AI for this answer…',
+  'turn.denied': 'Denied. The AI read nothing. Logged in your receipts.',
+  'turn.error': 'Error: {msg}',
+  'turn.toolCallsBefore': '🛑 The AI tried to run',
+  'turn.toolCallsAfter':
+    'NeedToKnow gives the AI no tools and no keys: the server holds only ciphertext, so there was nothing to export.',
+  'turn.injection': '⚠ Hidden instructions found inside a document:',
+  'turn.links': '🔗 Removed {n} external link(s) from the answer:',
+  'turn.sawOnly': 'AI saw only:',
+  'turn.followTitle': '⚠ After reading your documents, the AI wants {n} more',
+  'turn.followBody': 'Text inside a document can steer an AI. These were requested after it read:',
+  'turn.denyAll': 'Deny all',
+  'turn.releaseSelected': 'Release selected',
+  'turn.followDenied':
+    'Follow-up denied. Those documents stayed sealed: no key exists that the AI or the server could use instead.',
+
+  'receipts.loading': 'Loading receipts and decrypting your questions…',
+  'receipts.empty': 'No disclosures yet.',
+  'receipts.sub':
+    "Every time the AI saw anything. Questions are stored encrypted under your key; the server can't read this ledger either.",
+  'receipts.when': 'When',
+  'receipts.what': 'What',
+  'receipts.docs': 'Documents',
+  'receipts.question': 'Question',
+  'receipts.index': 'Titles shared',
+  'receipts.disclosure': 'Content disclosed',
+  'receipts.denied': 'Denied',
+  'receipts.titles': '{n} titles',
+  'receipts.deleted': 'deleted',
+
+  'op.noRole':
+    'Your token has no ntk-operator role. The API will refuse these requests: the role is checked server-side on the threshold-signed token, and granting it requires Tide admins to sign the change.',
+  'op.storeTitle': 'The whole document store',
+  'op.totals': '{docs} documents · {users} users',
+  'op.refresh': 'Refresh',
+  'op.storeSub':
+    'As the platform operator you can read every row in the database. This is everything a rogue admin, an insider or a breach would get.',
+  'op.colOwner': 'Owner',
+  'op.colTitle': 'Title (as stored)',
+  'op.colBody': 'Body (as stored)',
+  'op.colDecrypt': 'Decrypt with my Tide session',
+  'op.you': 'you',
+  'op.asking': 'Asking Tide ORKs…',
+  'op.tryDecrypt': 'Try to decrypt',
+  'op.refused': '🛑 Refused by the Tide network:',
+  'op.decryptedOwn': 'Decrypted (your own document):',
+  'op.rogueTitle': 'Unleash a server-side AI agent on the database',
+  'op.rogueSub':
+    'A typical "AI-powered" backend lets its agent read the store directly. Here is what an agent with full database access gets from NeedToKnow.',
+  'op.rogueBusy': 'Agent is reading the database…',
+  'op.rogueRun': 'Run rogue agent',
+  'op.rogueGiven': '{model} · given {n} raw records',
+  'op.govTitle': 'Can I just give myself more power?',
+  'op.govSub':
+    "Role changes in this realm are governed by TideCloak IGA. Assigning a role, even with the server's root admin credential, only files a change request. It takes effect after Tide admins approve it in their own enclaves (a 70% quorum of admins), so no single credential can push it through.",
+  'op.openConsole': 'Open Tide admin console ↗',
+} as const
+
+export type I18nKey = keyof typeof en
+
+const vi: Record<I18nKey, string> = {
+  'brand.builtWith': 'Xây dựng với TideCloak',
+  'nav.hi': 'Xin chào, {name}',
+  'nav.operator': 'Bảng điều khiển vận hành',
+  'nav.signOut': 'Đăng xuất',
+  'nav.backToVault': 'Về kho của tôi',
+
+  'landing.badge': 'Bản demo · dữ liệu giả lập',
+  'landing.title1': 'Hỏi AI về những tài liệu riêng tư nhất của bạn.',
+  'landing.title2': 'Không ai khác giữ chìa khóa.',
+  'landing.lead':
+    'Kết quả xét nghiệm, hợp đồng bảo hiểm, sao kê ngân hàng. NeedToKnow để AI hỗ trợ bạn với những tài liệu đó, trong khi máy chủ, quản trị viên và chính AI chỉ thấy những gì bạn cho phép, cho từng câu hỏi.',
+  'landing.connecting': 'Đang kết nối Tide…',
+  'landing.signIn': 'Đăng nhập bằng Tide',
+  'landing.noPassword': 'Không nơi nào lưu mật khẩu: mạng Tide xác minh mật khẩu theo từng phần.',
+  'landing.f1.title': '🔐 Không có master key',
+  'landing.f1.body':
+    'Tài liệu được mã hóa ngay trên trình duyệt. Thẩm quyền giải mã được phân tán trên các node độc lập của Tide và chỉ hình thành cho chính phiên đăng nhập của bạn.',
+  'landing.f2.title': '🤖 AI theo nguyên tắc need-to-know',
+  'landing.f2.body':
+    'AI chỉ thấy tiêu đề trước và xin những gì cần. Bạn duyệt từng tài liệu, AI trả lời, và mọi lần tiết lộ đều được ghi vào sổ biên nhận.',
+  'landing.f3.title': '🛡️ Chống chiếm quyền từ thiết kế',
+  'landing.f3.body':
+    'AI bị prompt injection, quản trị viên xấu hay máy chủ bị xâm nhập đều chỉ nhận được bản mã. Máy chủ không giữ khóa nào để bị đánh cắp.',
+
+  'vault.title': 'Kho tài liệu của bạn',
+  'vault.sub': 'Mã hóa ngay trên trình duyệt. Máy chủ chỉ lưu bản mã; muốn giải mã cần phiên Tide đang hoạt động của bạn.',
+  'vault.locked': 'Tide cần bạn xác nhận để mở enclave bảo mật.',
+  'vault.unlock': '🔓 Mở khóa kho',
+  'vault.decryptingTitles': 'Đang giải mã tiêu đề qua Tide…',
+  'vault.empty': 'Kho đang trống. Hãy tải bộ tài liệu giả lập của Linh để thử demo.',
+  'vault.bytes': '{n} byte',
+  'vault.delete': 'Xóa',
+  'vault.loadDemo': 'Tải tài liệu demo',
+  'vault.cancel': 'Hủy',
+  'vault.add': '+ Thêm tài liệu',
+  'vault.serverSees': 'Máy chủ nhìn thấy gì',
+  'vault.form.title': 'Tiêu đề',
+  'vault.form.category': 'Danh mục',
+  'vault.form.content': 'Nội dung',
+  'vault.form.submit': 'Mã hóa & lưu',
+  'vault.reset': 'Đặt lại demo',
+  'vault.resetConfirm': 'Xóa toàn bộ tài liệu và biên nhận của bạn?',
+  'vault.encrypting': 'Đang mã hóa {n} tài liệu trên trình duyệt qua Tide…',
+  'vault.stored': 'Đã lưu {n} tài liệu. Máy chủ chỉ nhận được bản mã.',
+
+  'cat.health': 'sức khỏe',
+  'cat.insurance': 'bảo hiểm',
+  'cat.finance': 'tài chính',
+  'cat.legal': 'pháp lý',
+  'cat.identity': 'giấy tờ tùy thân',
+  'cat.other': 'khác',
+
+  'tab.ask': 'Hỏi AI',
+  'tab.receipts': 'Biên nhận tiết lộ',
+  'ask.intro': 'AI chỉ bắt đầu với tiêu đề tài liệu. AI xin những gì cần, và bạn quyết định AI được đọc gì.',
+  'ask.placeholder': 'Đặt câu hỏi về tài liệu của bạn…',
+  'ask.submit': 'Hỏi',
+  'ask.trySurgery': 'Thử: chi phí phẫu thuật',
+  'ask.tryInvoice': 'Thử: hóa đơn vật lý trị liệu',
+  'ask.hijackHint': 'Chế độ red-team: mô hình được yêu cầu hành xử như một agent trích xuất dữ liệu đã bị chiếm quyền',
+  'ask.simulate': 'Mô phỏng',
+  'ask.hijacked': 'AI bị chiếm quyền',
+
+  'turn.hijackedTag': '⚠ mô phỏng AI bị chiếm quyền',
+  'turn.planning': 'AI đang đọc tiêu đề tài liệu của bạn…',
+  'turn.asks': '🤖 AI xin đọc {n}/{total} tài liệu của bạn',
+  'turn.tooMany': 'Quá nhiều tài liệu cho một câu hỏi. Chỉ cho phép những gì thật sự cần thiết.',
+  'turn.release': 'Cho phép {n} tài liệu cho câu hỏi này',
+  'turn.deny': 'Từ chối',
+  'turn.decrypting': 'Đang giải mã theo ngưỡng trên mạng Tide (phiên của bạn, khóa của bạn)…',
+  'turn.answering': 'Đã cho AI xem {n} tài liệu cho câu trả lời này…',
+  'turn.denied': 'Đã từ chối. AI không đọc gì. Đã ghi vào biên nhận.',
+  'turn.error': 'Lỗi: {msg}',
+  'turn.toolCallsBefore': '🛑 AI đã cố chạy',
+  'turn.toolCallsAfter':
+    'NeedToKnow không cấp cho AI công cụ hay khóa nào: máy chủ chỉ giữ bản mã nên không có gì để xuất ra.',
+  'turn.injection': '⚠ Phát hiện chỉ thị ẩn trong tài liệu:',
+  'turn.links': '🔗 Đã gỡ {n} liên kết ngoài khỏi câu trả lời:',
+  'turn.sawOnly': 'AI chỉ thấy:',
+  'turn.followTitle': '⚠ Sau khi đọc tài liệu, AI muốn xem thêm {n} tài liệu',
+  'turn.followBody': 'Nội dung bên trong tài liệu có thể điều khiển AI. Các yêu cầu này xuất hiện sau khi AI đọc:',
+  'turn.denyAll': 'Từ chối tất cả',
+  'turn.releaseSelected': 'Cho phép mục đã chọn',
+  'turn.followDenied':
+    'Đã từ chối yêu cầu bổ sung. Các tài liệu đó vẫn được niêm phong: không tồn tại khóa nào để AI hay máy chủ dùng thay.',
+
+  'receipts.loading': 'Đang tải biên nhận và giải mã câu hỏi của bạn…',
+  'receipts.empty': 'Chưa có lần tiết lộ nào.',
+  'receipts.sub':
+    'Mọi lần AI được xem dữ liệu. Câu hỏi được lưu dưới dạng mã hóa bằng khóa của bạn; máy chủ cũng không đọc được sổ này.',
+  'receipts.when': 'Thời điểm',
+  'receipts.what': 'Loại',
+  'receipts.docs': 'Tài liệu',
+  'receipts.question': 'Câu hỏi',
+  'receipts.index': 'Đã chia sẻ tiêu đề',
+  'receipts.disclosure': 'Đã tiết lộ nội dung',
+  'receipts.denied': 'Đã từ chối',
+  'receipts.titles': '{n} tiêu đề',
+  'receipts.deleted': 'đã xóa',
+
+  'op.noRole':
+    'Token của bạn không có vai trò ntk-operator. API sẽ từ chối các yêu cầu này: vai trò được kiểm tra phía máy chủ trên token ký theo ngưỡng, và việc cấp vai trò cần các quản trị viên Tide ký duyệt.',
+  'op.storeTitle': 'Toàn bộ kho tài liệu',
+  'op.totals': '{docs} tài liệu · {users} người dùng',
+  'op.refresh': 'Làm mới',
+  'op.storeSub':
+    'Với tư cách nhà vận hành, bạn đọc được mọi dòng trong cơ sở dữ liệu. Đây là tất cả những gì một quản trị viên xấu, người nội bộ hay kẻ xâm nhập có thể lấy được.',
+  'op.colOwner': 'Chủ sở hữu',
+  'op.colTitle': 'Tiêu đề (như được lưu)',
+  'op.colBody': 'Nội dung (như được lưu)',
+  'op.colDecrypt': 'Giải mã bằng phiên Tide của tôi',
+  'op.you': 'bạn',
+  'op.asking': 'Đang hỏi các ORK của Tide…',
+  'op.tryDecrypt': 'Thử giải mã',
+  'op.refused': '🛑 Mạng Tide từ chối:',
+  'op.decryptedOwn': 'Đã giải mã (tài liệu của chính bạn):',
+  'op.rogueTitle': 'Thả một AI agent phía máy chủ vào cơ sở dữ liệu',
+  'op.rogueSub':
+    'Một backend "tích hợp AI" thông thường cho agent đọc trực tiếp kho dữ liệu. Đây là những gì một agent có toàn quyền truy cập cơ sở dữ liệu lấy được từ NeedToKnow.',
+  'op.rogueBusy': 'Agent đang đọc cơ sở dữ liệu…',
+  'op.rogueRun': 'Chạy agent giả mạo',
+  'op.rogueGiven': '{model} · nhận {n} bản ghi thô',
+  'op.govTitle': 'Tôi có thể tự cấp thêm quyền cho mình không?',
+  'op.govSub':
+    'Thay đổi vai trò trong realm này được quản trị bởi TideCloak IGA. Việc gán vai trò, kể cả bằng credential quản trị gốc của máy chủ, chỉ tạo ra một change request. Thay đổi chỉ có hiệu lực sau khi các quản trị viên Tide phê duyệt trong enclave của riêng họ (quorum 70% số quản trị viên), nên không một credential đơn lẻ nào tự áp dụng được.',
+  'op.openConsole': 'Mở Tide admin console ↗',
+}
+
+const DICTS: Record<Lang, Record<I18nKey, string>> = { en, vi }
+
+interface I18nValue {
+  lang: Lang
+  setLang: (lang: Lang) => void
+  t: (key: I18nKey, vars?: Record<string, string | number>) => string
+}
+
+const I18nContext = createContext<I18nValue | null>(null)
+
+export function I18nProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>('en')
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY)
+      if (saved === 'en' || saved === 'vi') setLangState(saved)
+    } catch {
+      // Storage can be unavailable (private mode); English stays the default.
+    }
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
+
+  const setLang = useCallback((next: Lang) => {
+    setLangState(next)
+    try {
+      localStorage.setItem(STORAGE_KEY, next)
+    } catch {
+      // Not persisted; the choice still applies for this page view.
+    }
+  }, [])
+
+  const t = useCallback(
+    (key: I18nKey, vars?: Record<string, string | number>) => {
+      let s: string = DICTS[lang][key] ?? en[key]
+      if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v))
+      return s
+    },
+    [lang],
+  )
+
+  const value = useMemo(() => ({ lang, setLang, t }), [lang, setLang, t])
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
+}
+
+export function useI18n() {
+  const ctx = useContext(I18nContext)
+  if (!ctx) throw new Error('useI18n must be used inside <I18nProvider>')
+  return ctx
+}
+
+export function LangSwitch() {
+  const { lang, setLang } = useI18n()
+  return (
+    <div className="lang-switch" role="group" aria-label="Language">
+      {(['en', 'vi'] as const).map((l) => (
+        <button key={l} className={lang === l ? 'active' : ''} onClick={() => setLang(l)} aria-pressed={lang === l}>
+          {l.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  )
+}
