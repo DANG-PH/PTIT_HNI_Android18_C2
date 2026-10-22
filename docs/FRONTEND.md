@@ -22,9 +22,10 @@ cd frontend && npm install && npm run dev             # Web: http://localhost:30
 | `app/lib/i18n.tsx` | Từ điển EN/VI, `useI18n()`, `LangSwitch` | Thêm khóa mới vào **cả hai** từ điển |
 | `app/lib/demo-docs.ts` | Dữ liệu giả lập và câu hỏi gợi ý | Chỉ sửa khi thống nhất với kịch bản video |
 | `app/lib/vault.ts` | Gọi API kèm token Tide, mã hóa và giải mã | **Không sửa** |
-| `app/layout.tsx` | `TideCloakProvider`, `I18nProvider`, `ProfileOnboarding` | **Không đổi thứ tự provider** |
+| `app/layout.tsx` | `TideCloakProvider`, `I18nProvider` | **Không đổi thứ tự provider** |
 | `app/auth/redirect`, `app/tide_dpop`, `public/*.html`, `tidecloak.json` | Tích hợp TideCloak (file từ template chính thức, có kiểm tra toàn vẹn) | **Không sửa** |
-| `app/components/ProfileOnboarding.tsx` | Form hỏi tên hiển thị sau khi đăng ký (do Tide cung cấp) | Chỉ chỉnh style |
+
+> **Lưu ý:** form hỏi tên hiển thị sau đăng ký (`ProfileOnboarding` của Tide) đã được gỡ bỏ. Với IGA ở chế độ Tide, ngay cả việc người dùng tự sửa hồ sơ cũng trở thành change request chờ quản trị viên duyệt. Form vì vậy báo lỗi khi lưu và làm trang `/auth/redirect` không chuyển tiếp. Không thêm lại form này.
 
 ## Quy ước
 

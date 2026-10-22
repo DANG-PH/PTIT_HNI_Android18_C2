@@ -30,4 +30,6 @@ Load Linh's synthetic vault, ask about surgery, approve. Turn on "Simulate hijac
 
 ## Setup
 
-See [docs/SETUP.md](docs/SETUP.md).
+**Try the live demo:** open https://ntk.dangpham.id.vn, choose **Sign in with Tide → Create an account**, then **Load demo documents** and use the suggested questions (all data is synthetic). Toggle **Simulate hijacked AI** to see the red-team run.
+
+Run it yourself: see [docs/SETUP.md](docs/SETUP.md).

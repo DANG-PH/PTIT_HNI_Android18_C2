@@ -154,6 +154,8 @@ const en = {
   'op.asking': 'Asking Tide ORKs…',
   'op.tryDecrypt': 'Try to decrypt',
   'op.refused': 'Refused by the Tide network:',
+  'op.refusedSummary': '{failed} of {total} independent Tide nodes declined (at least {need} must agree). This document is sealed to its owner\'s identity.',
+  'op.rawError': 'Technical details',
   'op.decryptedOwn': 'Decrypted (your own document):',
   'op.rogueTitle': 'Unleash a server-side AI agent on the database',
   'op.rogueSub':
@@ -318,6 +320,8 @@ const vi: Record<I18nKey, string> = {
   'op.asking': 'Đang hỏi các ORK của Tide…',
   'op.tryDecrypt': 'Thử giải mã',
   'op.refused': 'Mạng Tide từ chối:',
+  'op.refusedSummary': '{failed}/{total} node Tide độc lập từ chối (cần ít nhất {need} node đồng ý). Tài liệu này được niêm phong theo danh tính của chủ sở hữu.',
+  'op.rawError': 'Chi tiết kỹ thuật',
   'op.decryptedOwn': 'Đã giải mã (tài liệu của chính bạn):',
   'op.rogueTitle': 'Thả một AI agent phía máy chủ vào cơ sở dữ liệu',
   'op.rogueSub':

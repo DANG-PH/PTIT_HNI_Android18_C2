@@ -149,7 +149,11 @@ export default function OperatorPage() {
                         </button>
                         {a?.state === 'refused' && (
                           <div className="alert alert-danger small" style={{ marginTop: 6 }}>
-                            <Glyph name="stop" /> {t('op.refused')} {a.text}
+                            <Glyph name="stop" /> {t('op.refused')} <RefusalSummary raw={a.text} />
+                            <details style={{ marginTop: 4 }}>
+                              <summary>{t('op.rawError')}</summary>
+                              <code style={{ wordBreak: 'break-all' }}>{a.text.slice(0, 400)}</code>
+                            </details>
                           </div>
                         )}
                         {a?.state === 'ok' && (
@@ -196,4 +200,15 @@ export default function OperatorPage() {
       </main>
     </>
   )
+}
+
+/**
+ * The SDK reports a threshold refusal as "got X of N required, F of T failed". Say what that means:
+ * every independent node checked the request against the caller's identity and declined.
+ */
+function RefusalSummary({ raw }: { raw: string }) {
+  const { t } = useI18n()
+  const m = raw.match(/got \d+ of (\d+) required, (\d+) of (\d+) failed/)
+  if (!m) return <>{raw.slice(0, 160)}</>
+  return <>{t('op.refusedSummary', { need: m[1], failed: m[2], total: m[3] })}</>
 }
