@@ -86,7 +86,7 @@ export default function OperatorPage() {
     <>
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark">N</span> NeedToKnow <span className="pill pill-danger">{t('nav.operator')}</span>
+          <img className="brand-mark brand-logo" src="/logo.png" alt="" width={30} height={30} /> NeedToKnow <span className="pill pill-danger">{t('nav.operator')}</span>
         </div>
         <nav>
           <a className="btn btn-sm" href="/home">

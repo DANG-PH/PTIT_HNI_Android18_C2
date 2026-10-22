@@ -38,7 +38,7 @@ export default function LandingPage() {
     <>
       <header className="topbar">
         <div className="brand">
-          <span className="brand-mark">N</span> NeedToKnow
+          <img className="brand-mark brand-logo" src="/logo.png" alt="" width={30} height={30} /> NeedToKnow
         </div>
         <nav>
           <a className="nav-link" href="#how">{t('nav.how')}</a>
