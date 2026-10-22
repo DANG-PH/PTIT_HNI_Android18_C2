@@ -97,7 +97,7 @@ export default function OperatorPage() {
       </header>
 
       <main className="page">
-        {!hasRealmRole('ntk-operator') && (
+        {!isInitializing && authenticated && !hasRealmRole('ntk-operator') && (
           <div className="alert alert-warn small" style={{ marginBottom: 16 }}>
             {t('op.noRole')}
           </div>
