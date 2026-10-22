@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import tcConfig from '../../tidecloak.json'
 import { Glyph } from '../components/Glyph'
+import { ThresholdRing } from '../components/ThresholdRing'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import { errorText, useApi, useVaultCrypto } from '../lib/vault'
@@ -147,9 +148,20 @@ export default function OperatorPage() {
                         <button className="btn btn-sm" onClick={() => tryDecrypt(r)} disabled={a?.state === 'busy'}>
                           {a?.state === 'busy' ? t('op.asking') : t('op.tryDecrypt')}
                         </button>
+                        {a?.state === 'busy' && (
+                          <div className="ring-row" style={{ marginTop: 8 }}>
+                            <ThresholdRing state="working" size="sm" />
+                            <p>{t('ring.aria.working')}</p>
+                          </div>
+                        )}
                         {a?.state === 'refused' && (
                           <div className="alert alert-danger small" style={{ marginTop: 6 }}>
-                            <Glyph name="stop" /> {t('op.refused')} <RefusalSummary raw={a.text} />
+                            <div className="ring-row" style={{ marginBottom: 6 }}>
+                              <ThresholdRing state="refused" />
+                              <span>
+                                <Glyph name="stop" /> {t('op.refused')} <RefusalSummary raw={a.text} />
+                              </span>
+                            </div>
                             <details style={{ marginTop: 4 }}>
                               <summary>{t('op.rawError')}</summary>
                               <code style={{ wordBreak: 'break-all' }}>{a.text.slice(0, 400)}</code>
@@ -157,8 +169,11 @@ export default function OperatorPage() {
                           </div>
                         )}
                         {a?.state === 'ok' && (
-                          <div className="alert alert-ok small" style={{ marginTop: 6 }}>
-                            {t('op.decryptedOwn')} {a.text}
+                          <div className="alert alert-ok small ring-row" style={{ marginTop: 6 }}>
+                            <ThresholdRing state="granted" size="sm" />
+                            <span>
+                              {t('op.decryptedOwn')} {a.text}
+                            </span>
                           </div>
                         )}
                       </td>

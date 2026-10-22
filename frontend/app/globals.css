@@ -774,3 +774,32 @@ tbody tr:hover td { background: color-mix(in srgb, var(--ink) 3%, transparent); 
   white-space: pre-wrap; font-family: var(--mono); font-size: 11.5px; background: var(--surface-2);
   border: 1px solid var(--border); border-radius: 8px; padding: 8px; max-height: 220px; overflow: auto; margin: 4px 0 10px;
 }
+
+/* Emergent Authority ring: 20 Tide ORK nodes, 14 must agree. Colour only for outcome (ok / danger). */
+.ring { position: relative; display: inline-grid; place-items: center; flex: none; }
+.ring svg { display: block; overflow: visible; }
+.ring-track { fill: none; stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 4; }
+.ring-node { fill: var(--surface); stroke: var(--muted); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; }
+.ring-working .ring-node { animation: ring-pulse 1.4s var(--ease) infinite; }
+.ring-granted .ring-node.yes { animation: ring-yes 0.5s var(--ease) both; }
+.ring-granted .ring-node.no { opacity: 0.35; }
+.ring-refused .ring-node { animation: ring-no 0.5s var(--ease) both; }
+.ring-refused svg { animation: ring-shake 0.5s 0.9s var(--ease) both; }
+.ring-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; line-height: 1.1; pointer-events: none; }
+.ring-center strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.ring-center span { font-size: 9.5px; color: var(--muted); max-width: 60px; }
+.ring-sm .ring-center strong { font-size: 11px; }
+.ring-granted .ring-center strong { color: var(--ok); }
+.ring-refused .ring-center strong { color: var(--danger); }
+@keyframes ring-pulse { 0%, 100% { fill: var(--surface); } 35% { fill: var(--text); stroke: var(--text); } }
+@keyframes ring-yes { from { fill: var(--surface); transform: scale(0.6); } to { fill: var(--ok); stroke: var(--ok); transform: scale(1); } }
+@keyframes ring-no { 0% { fill: var(--surface); transform: scale(1); } 60% { transform: scale(1.4); } 100% { fill: var(--danger); stroke: var(--danger); transform: scale(1); } }
+@keyframes ring-shake { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-3px); } 40% { transform: translateX(3px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(2px); } }
+@media (prefers-reduced-motion: reduce) {
+  .ring-node, .ring svg { animation: none !important; }
+  .ring-granted .ring-node.yes { fill: var(--ok); stroke: var(--ok); }
+  .ring-refused .ring-node { fill: var(--danger); stroke: var(--danger); }
+}
+.ring-row { display: flex; align-items: center; gap: 14px; }
+.ring-row p { margin: 0; font-size: 13px; color: var(--muted); }
+.ring-row strong { color: var(--text); }

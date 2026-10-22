@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { DemoGuide, type GuideStep } from '../components/DemoGuide'
 import { Glyph } from '../components/Glyph'
+import { ThresholdRing } from '../components/ThresholdRing'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { DEMO_DOCS, DEMO_PERSONA, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
@@ -357,8 +358,9 @@ export default function HomePage() {
               </div>
             )}
             {vaultState === 'loading' ? (
-              <div className="step">
-                <span className="spinner" /> {t('vault.decryptingTitles')}
+              <div className="ring-row">
+                <ThresholdRing state="working" size="sm" />
+                <p>{t('vault.decryptingTitles')}</p>
               </div>
             ) : docs.length === 0 && locked ? null : docs.length === 0 ? (
               <p className="sub" style={{ marginBottom: 0 }}>{t('vault.empty')}</p>
@@ -392,7 +394,14 @@ export default function HomePage() {
                 </label>
               )}
             </div>
-            {vaultMsg && <p className="small muted" style={{ marginBottom: 0 }}>{vaultMsg}</p>}
+            {vaultState === 'working' ? (
+              <div className="ring-row" style={{ marginTop: 12 }}>
+                <ThresholdRing state="working" size="sm" />
+                <p>{t('ring.sealing')}</p>
+              </div>
+            ) : (
+              vaultMsg && <p className="small muted" style={{ marginBottom: 0 }}>{vaultMsg}</p>
+            )}
 
             {adding && (
               <form
@@ -584,8 +593,20 @@ function TurnView(props: {
         </div>
       )}
 
-      {t.phase === 'decrypting' && <Step>{tr('turn.decrypting')}</Step>}
-      {t.phase === 'answering' && <Step>{tr('turn.answering', { n: t.released.length })}</Step>}
+      {t.phase === 'decrypting' && (
+        <div className="ring-row">
+          <ThresholdRing state="working" />
+          <p>{tr('ring.decrypting')}</p>
+        </div>
+      )}
+      {t.phase === 'answering' && (
+        <div className="ring-row">
+          <ThresholdRing state="granted" />
+          <p>
+            {tr('ring.granted', { n: t.released.length })} <span className="spinner" />
+          </p>
+        </div>
+      )}
       {t.phase === 'denied' && <div className="alert alert-ok small">{tr('turn.denied')}</div>}
       {t.phase === 'error' && <div className="alert alert-danger small">{tr('turn.error', { msg: t.error ?? '' })}</div>}
 
@@ -611,6 +632,7 @@ function TurnView(props: {
             <RichAnswer text={t.answer.answer} titles={titles} />
             {t.released.length > 0 && (
               <div className="row small muted" style={{ marginTop: 10 }}>
+                <ThresholdRing state="granted" size="sm" />
                 {tr('turn.sawOnly')}
                 {t.released.map((r) => (
                   <span key={r.id} className="pill pill-accent">
