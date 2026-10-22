@@ -79,6 +79,17 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 
 ---
 
+## 6b. Kết quả kiểm chứng trên bản triển khai thực tế
+
+| Phép thử | Kết quả quan sát được |
+|---|---|
+| Quản trị viên (có vai trò `ntk-operator`) giải mã tài liệu của người dùng khác bằng phiên Tide của chính mình | **20/20 node ORK từ chối** (`encrypted data signature failed`, cần tối thiểu 14) |
+| Dùng credential quản trị gốc của máy chủ để cấp vai trò `ntk-operator` | API trả `204` nhưng vai trò **không đổi**; chỉ phát sinh change request `GRANT_ROLES` chờ chữ ký enclave |
+| Form hồ sơ mẫu ghi đè thuộc tính người dùng | IGA chặn thành change request `REMOVE_USER_ATTRIBUTE` (sẽ xóa `tideUserKey`/`vuid`); yêu cầu đã bị từ chối và form đã được gỡ bỏ |
+| AI bị chiếm quyền (prompt injection tiếng Pháp/Bồ Đào Nha) | AI đòi 7/7 tài liệu, cố gọi `export_all_documents()` và chèn liên kết; liên kết bị loại bỏ, không dữ liệu nào bị xuất |
+| AI agent phía máy chủ có toàn quyền đọc cơ sở dữ liệu | Chỉ nhận bản mã: *"The provided records are encoded or encrypted… cannot extract any personal information"* |
+| Gemini quá tải (503) | Tự thử lại và chuyển model dự phòng; biên nhận ghi đúng model đã trả lời |
+
 ## 7. Giới hạn của giải pháp
 
 - Nội dung **đã được phê duyệt** sẽ được gửi tới nhà cung cấp mô hình AI cho đúng câu hỏi đó. NeedToKnow loại bỏ **quyền truy cập thường trực và đơn phương**, không loại bỏ hoàn toàn việc AI tiếp xúc dữ liệu. Hướng phát triển: tự động che thông tin định danh trước khi gửi, hoặc vận hành mô hình trong môi trường confidential computing.

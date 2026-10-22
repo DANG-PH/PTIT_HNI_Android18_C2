@@ -21,12 +21,17 @@ Linh has an ACL surgery quote. Instead of an evening with a 30-page policy, she 
 ### 4. Why TideCloak matters
 
 - **Tide self-encryption:** documents are encrypted in the browser. Decryption is a threshold operation on Tide's ORK network that only the owner's live session can authorise. Our server holds no key.
-- An operator with the whole database and their own Tide session still cannot decrypt users' documents.
+- Verified live: when an operator tries to decrypt another user's file, 20 of 20 Tide nodes refuse.
 - **IGA governance:** even the server's root admin credential can only file a role change; it applies only after Tide admins sign it in their enclaves (70% quorum).
 
 ### 5. Prototype & storytelling
 
 Load Linh's synthetic vault, ask about surgery, approve. Turn on "Simulate hijacked AI" and ask about the physio invoice: a hidden French injection makes the AI demand every document and call `export_all_documents()`. Deny: nothing leaks. In the operator console, decryption is refused.
+
+| | |
+|---|---|
+| ![AI asks for 3 of 7 documents and answers with citations](docs/screenshots/answer.png) | ![Hijacked AI: export blocked, link stripped, extra requests flagged](docs/screenshots/hijacked-ai.png) |
+| ![Operator's decrypt attempt refused by 20 of 20 Tide nodes](docs/screenshots/operator-refused.png) | ![Root-credential role grant parked as a pending change request](docs/screenshots/governance.png) |
 
 ## Setup
 

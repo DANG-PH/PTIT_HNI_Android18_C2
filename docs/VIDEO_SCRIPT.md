@@ -1,5 +1,7 @@
 # Kịch bản video demo
 
+> **Trạng thái:** repository đã có sẵn `demo.mp4` (khoảng 1 phút 48 giây, có phụ đề tiếng Anh). Video được quay tự động trên bản triển khai thực tế bằng `tools/demo-video/`. Kịch bản dưới đây dùng khi nhóm muốn quay lại bản có lồng tiếng.
+
 **Yêu cầu kỹ thuật:** thời lượng 2 phút, định dạng `.mp4`, dung lượng dưới 100 MB, đặt tại thư mục gốc của repository với tên `demo.mp4` (README đã liên kết sẵn).
 
 **Quy ước:**
