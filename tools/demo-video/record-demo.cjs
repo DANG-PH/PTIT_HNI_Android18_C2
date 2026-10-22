@@ -65,13 +65,14 @@ async function signIn(page, r, user, pass) {
   const restart = lp.getByRole('button', { name: /restart demo/i });
   if (await lp.locator('.doc').count() && await restart.isEnabled().catch(() => false)) {
     await restart.click();
-    await lp.getByRole('button', { name: /load demo documents/i }).waitFor({ state: 'visible', timeout: 60000 });
+    await lp.locator('.guide').getByRole('button', { name: /load demo documents/i }).waitFor({ state: 'visible', timeout: 60000 });
     await lp.waitForFunction(() => !document.querySelector('.doc'), null, { timeout: 60000 });
     await lp.waitForTimeout(1500);
   }
   L.mark('guide');
   await lp.waitForTimeout(3500);
-  const load = lp.getByRole('button', { name: /load demo documents/i });
+  // An empty vault also offers this button in the vault and chat panels; the video follows the guide.
+  const load = lp.locator('.guide').getByRole('button', { name: /load demo documents/i });
   await L.click(load);
   L.mark('encrypt');
   await lp.getByText(/Stored 7 document/).waitFor({ timeout: 120000 });
