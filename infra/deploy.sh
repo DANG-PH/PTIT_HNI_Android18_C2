@@ -12,11 +12,16 @@ jq -e '.jwk.keys | length > 0' "$ROOT/frontend/tidecloak.json" >/dev/null \
 GEMINI_API_KEY="$(grep ^GEMINI_API_KEY= "$ROOT/backend/.env" | cut -d= -f2-)"
 [[ -n "$GEMINI_API_KEY" ]] || { echo "GEMINI_API_KEY missing in backend/.env" >&2; exit 1; }
 
-docker build -t needtoknow-web:latest "$ROOT/frontend"
-docker build -t needtoknow-api:latest "$ROOT/backend"
-docker save needtoknow-web:latest needtoknow-api:latest | gzip -1 | "${SSH[@]}" 'gunzip | docker load'
+SERVICES="${SERVICES:-web api}"   # e.g. SERVICES=api bash infra/deploy.sh
+images=()
+for svc in $SERVICES; do
+  dir=$([[ $svc == web ]] && echo frontend || echo backend)
+  docker build -t "needtoknow-$svc:latest" "$ROOT/$dir"
+  images+=("needtoknow-$svc:latest")
+done
+docker save "${images[@]}" | gzip -1 | "${SSH[@]}" 'gunzip | docker load'
 
 "${SCP[@]}" "$ROOT/infra/docker-compose.yml" "$ROOT/frontend/tidecloak.json" "$VPS:/root/needtoknow/"
 "${SSH[@]}" "cd /root/needtoknow && mkdir -p api-data \
   && (grep -q ^GEMINI_API_KEY= .env || echo 'GEMINI_API_KEY=$GEMINI_API_KEY' >> .env) \
-  && docker compose up -d --force-recreate api web && docker image prune -f >/dev/null && docker compose ps"
+  && docker compose up -d --force-recreate $SERVICES && docker image prune -f >/dev/null && docker compose ps"

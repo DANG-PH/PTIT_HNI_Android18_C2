@@ -14,7 +14,7 @@ export const env = {
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
   geminiFallbackModels: (
-    process.env.GEMINI_FALLBACK_MODELS ?? 'gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3-flash-preview'
+    process.env.GEMINI_FALLBACK_MODELS ?? 'gemini-3-flash-preview,gemini-3.5-flash-lite,gemini-3.1-flash-lite'
   )
     .split(',')
     .map((m) => m.trim())
