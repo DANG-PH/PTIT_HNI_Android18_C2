@@ -131,7 +131,7 @@ label { display: block; font-size: 13px; font-weight: 600; margin: 10px 0 4px; }
 .bubble { padding: 12px 14px; border-radius: var(--radius); background: var(--surface-2); white-space: pre-wrap; overflow-wrap: anywhere; }
 .bubble.user { background: var(--accent); color: var(--accent-text); justify-self: end; max-width: 85%; }
 .bubble.ai { background: var(--surface); border: 1px solid var(--border); }
-.cite { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 0 5px; }
+.cite { font-size: 12px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border-radius: 6px; padding: 0 5px; margin: 0 2px; white-space: nowrap; }
 
 .alert { border-radius: 10px; padding: 10px 12px; font-size: 14px; }
 .alert-danger { background: var(--danger-soft); color: var(--danger); }

@@ -68,16 +68,24 @@ export default function HomePage() {
     if (!isInitializing && !authenticated) router.push('/')
   }, [authenticated, isInitializing, router])
 
+  const [locked, setLocked] = useState(false)
+
   const loadVault = useCallback(async () => {
     setVaultState('loading')
     setVaultMsg('')
+    setLocked(false)
     try {
       const stored = await api<StoredDoc[]>('/docs')
       // Titles are ciphertext too: decrypt them in one threshold call. Bodies stay sealed until released.
-      const plain = await decrypt(stored.map((d) => d.titleCt))
+      // If the hidden enclave can't open, the SDK falls back to a popup, which browsers block without a
+      // click, so after a while we offer an explicit Unlock button (a real user gesture).
+      const slow = setTimeout(() => setLocked(true), 12_000)
+      const plain = await decrypt(stored.map((d) => d.titleCt)).finally(() => clearTimeout(slow))
       setDocs(stored.map((d, i) => ({ ...d, title: plain[i] })))
+      setLocked(false)
     } catch (err) {
       setVaultMsg(errorText(err))
+      setLocked(true)
     } finally {
       setVaultState('idle')
     }
@@ -269,11 +277,19 @@ export default function HomePage() {
               Encrypted in your browser. The server stores ciphertext only; decrypting needs your live Tide session.
             </p>
 
+            {locked && docs.length === 0 && (
+              <div className="alert alert-warn small" style={{ marginBottom: 10 }}>
+                Tide needs your go-ahead to open its secure enclave.{' '}
+                <button className="btn btn-primary btn-sm" onClick={loadVault}>
+                  🔓 Unlock vault
+                </button>
+              </div>
+            )}
             {vaultState === 'loading' ? (
               <div className="step">
                 <span className="spinner" /> Decrypting titles via Tide…
               </div>
-            ) : docs.length === 0 ? (
+            ) : docs.length === 0 && locked ? null : docs.length === 0 ? (
               <div className="alert alert-ok small">
                 Empty vault. Load Linh&apos;s synthetic documents to try the demo.
               </div>
@@ -297,7 +313,7 @@ export default function HomePage() {
             )}
 
             <div className="row" style={{ marginTop: 12 }}>
-              {docs.length === 0 && (
+              {docs.length === 0 && vaultState !== 'loading' && (
                 <button className="btn btn-primary btn-sm" onClick={() => addDocs(DEMO_DOCS)} disabled={busy}>
                   Load demo documents
                 </button>
@@ -607,7 +623,7 @@ function Step({ children }: { children: ReactNode }) {
 
 /** Plain-text rendering with [doc:ID] citations and **bold**. No HTML, links or images are ever rendered. */
 function RichAnswer({ text, titles }: { text: string; titles: Map<string, string> }) {
-  const parts = text.split(/(\[doc:[^\]]+\]|\*\*[^*]+\*\*)/g)
+  const parts = text.replace(/^\s*[*-]\s+/gm, '• ').split(/(\[doc:[^\]]+\]|\*\*[^*]+\*\*)/g)
   return (
     <>
       {parts.map((p, i) => {
