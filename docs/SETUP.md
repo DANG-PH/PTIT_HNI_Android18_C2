@@ -52,6 +52,20 @@ For the quorum demo, add two more admins in the Tide admin console (`/realms/nee
 
 To grant the operator role, assign the `ntk-operator` realm role to a user in the console. The assignment becomes a change request that needs the quorum.
 
+### Post-init realm settings (what the live deployment uses)
+
+```bash
+export KC_BOOTSTRAP_ADMIN_PASSWORD=…        # bootstrap credential, scripts only
+# Tide pack scripts: curl -fsSL https://mcp.tide.org/pack/templates.tgz | tar -xz -C .tide-pack
+bash .tide-pack/templates/skip-idp-review/skip-review-profile.sh --realm needtoknow --url <tide-url>
+.tide-pack/templates/enclave-branding/brand-tidecloak.sh --realm needtoknow --kind vault --accent 0f766e --name NeedToKnow --url <tide-url>
+```
+
+- **Open registration** so visitors can create a Tide account from the app: set the realm's `registrationAllowed` to `true`. Under IGA this becomes a `SET_REALM_CONFIG` change request that a Tide admin approves in the admin console (**Change Requests → Authorize**, which opens the enclave).
+- **Email optional** in the user profile (Tide users have no email): remove `required` from the `email` attribute (`PUT /admin/realms/needtoknow/users/profile`).
+- **Do not add a profile-edit form.** Under Tide-mode IGA, a user's own Account API update is captured as a change request. A partial update would also remove `tideUserKey`/`vuid`.
+- **Operator role:** assign the `ntk-operator` realm role to an admin user and approve the `GRANT_ROLES` change request.
+
 ## 3. API
 
 ```bash
