@@ -8,6 +8,7 @@ import { Glyph, type GlyphName } from '../components/Glyph'
 import { ThresholdRing } from '../components/ThresholdRing'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { DEMO_DOCS, DEMO_PERSONA, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
+import { MAX_DOC_CHARS, readFileText } from '../lib/file-text'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import { redact } from '../lib/redact'
 import {
@@ -68,6 +69,22 @@ export default function HomePage() {
   const [showCiphertext, setShowCiphertext] = useState(false)
   const [adding, setAdding] = useState(false)
   const [form, setForm] = useState({ title: '', category: 'health' as Category, body: '' })
+  const [fileNote, setFileNote] = useState('')
+
+  /** Fills the form from a file. Extraction runs in the browser; nothing is sent until "Encrypt & store". */
+  const pickFile = async (file: File) => {
+    setFileNote(t('vault.form.reading'))
+    try {
+      let text = (await readFileText(file)).replace(/[ \t]+\n/g, '\n').trim()
+      if (!text) return setFileNote(t('vault.form.noText'))
+      const trimmed = text.length > MAX_DOC_CHARS
+      if (trimmed) text = text.slice(0, MAX_DOC_CHARS)
+      setForm((f) => ({ ...f, title: f.title || file.name.replace(/\.[^.]+$/, ''), body: text }))
+      setFileNote(t(trimmed ? 'vault.form.trimmed' : 'vault.form.loaded', { name: file.name, n: text.length }))
+    } catch (err) {
+      setFileNote(errorText(err))
+    }
+  }
 
   const [tab, setTab] = useState<'ask' | 'receipts'>('ask')
   const [question, setQuestion] = useState('')
@@ -364,6 +381,61 @@ export default function HomePage() {
             <p className="sub">{t('vault.sub')}</p>
 
             <div className="vault-scroll">
+            {/* The form opens at the top of the list so it is in view without scrolling. */}
+            {adding && (
+              <form
+                className="add-form"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (!form.title.trim() || !form.body.trim()) return
+                  addDocs([{ ...form, title: form.title.trim() }]).then(() => {
+                    setForm({ title: '', category: 'health', body: '' })
+                    setFileNote('')
+                    setAdding(false)
+                  })
+                }}
+              >
+                <label
+                  className="file-pick"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    if (e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0])
+                  }}
+                >
+                  <input
+                    type="file"
+                    accept=".pdf,.txt,.md,.csv,.json,application/pdf,text/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) pickFile(e.target.files[0])
+                      e.target.value = ''
+                    }}
+                  />
+                  <Glyph name="file" /> {t('vault.form.file')}
+                  <span>{t('vault.form.fileHint')}</span>
+                </label>
+                {fileNote && <p className="small muted file-note">{fileNote}</p>}
+                <label htmlFor="title">{t('vault.form.title')}</label>
+                <input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+                <label htmlFor="category">{t('vault.form.category')}</label>
+                <select
+                  id="category"
+                  value={form.category}
+                  onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
+                >
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {t(`cat.${c}` as I18nKey)}
+                    </option>
+                  ))}
+                </select>
+                <label htmlFor="body">{t('vault.form.content')}</label>
+                <textarea id="body" rows={6} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
+                <button className="btn btn-primary btn-sm" style={{ marginTop: 10 }} disabled={busy}>
+                  {t('vault.form.submit')}
+                </button>
+              </form>
+            )}
             {locked && docs.length === 0 && (
               <div className="alert alert-warn small" style={{ marginBottom: 10 }}>
                 {t('vault.locked')}{' '}
@@ -390,7 +462,7 @@ export default function HomePage() {
                       </span>
                     </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="title">{d.title}</div>
+                      <div className="title" title={d.title}>{d.title}</div>
                       <div className="meta">
                         {t(`cat.${d.category}` as I18nKey)} · {t('vault.bytes', { n: d.bodyBytes })}
                       </div>
@@ -403,43 +475,17 @@ export default function HomePage() {
                 ))}
               </ul>
             )}
-
-            {adding && (
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault()
-                  if (!form.title.trim() || !form.body.trim()) return
-                  addDocs([{ ...form, title: form.title.trim() }]).then(() => {
-                    setForm({ title: '', category: 'health', body: '' })
-                    setAdding(false)
-                  })
-                }}
-              >
-                <label htmlFor="title">{t('vault.form.title')}</label>
-                <input id="title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                <label htmlFor="category">{t('vault.form.category')}</label>
-                <select
-                  id="category"
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value as Category })}
-                >
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {t(`cat.${c}` as I18nKey)}
-                    </option>
-                  ))}
-                </select>
-                <label htmlFor="body">{t('vault.form.content')}</label>
-                <textarea id="body" rows={6} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} />
-                <button className="btn btn-primary btn-sm" style={{ marginTop: 10 }} disabled={busy}>
-                  {t('vault.form.submit')}
-                </button>
-              </form>
-            )}
             </div>
             <div className="vault-foot">
             <div className="row">
-              <button className="btn btn-sm" onClick={() => setAdding((a) => !a)} disabled={busy}>
+              <button
+                className="btn btn-sm"
+                onClick={() => {
+                  setAdding((a) => !a)
+                  setFileNote('')
+                }}
+                disabled={busy}
+              >
                 {adding ? t('vault.cancel') : t('vault.add')}
               </button>
               {docs.length > 0 && (
@@ -538,7 +584,7 @@ export default function HomePage() {
                   }}
                 />
                 <div className="composer-bar">
-                  <span className="small muted">{t('ask.hint')}</span>
+                  <span className="small muted">{docs.length ? t('ask.hint') : t('ask.needDocs')}</span>
                   <button className="btn btn-primary composer-send" disabled={!question.trim() || docs.length === 0} aria-label={t('ask.submit')}>
                     {t('ask.submit')} <Glyph name="send" />
                   </button>
@@ -595,6 +641,11 @@ function TurnView(props: {
           <h3>
             <Glyph name="bot" /> {tr('turn.asks', { n: t.plan.needed.length, total })}
           </h3>
+          {t.phase === 'consent' && (
+            <p className="consent-why">
+              <Glyph name="lock" /> {tr('turn.why')}
+            </p>
+          )}
           {t.plan.message && <p className="small" style={{ margin: '0 0 8px' }}>{t.plan.message}</p>}
           {many && (
             <div className="alert alert-danger small" style={{ marginBottom: 8 }}>

@@ -45,14 +45,12 @@ export function DemoGuide({ steps, onRestart, restartDisabled }: { steps: GuideS
         <span className="eyebrow">{t('guide.eyebrow')}</span>
         <h2 className="guide-title">{t('guide.title')}</h2>
         <span className="spacer" />
-        <button className="btn btn-sm" onClick={onRestart} disabled={restartDisabled}>
-          {t('guide.restart')}
-        </button>
         <button className="btn btn-sm" onClick={toggle} aria-expanded={open}>
           {open ? t('guide.hide') : t('guide.show')}
         </button>
       </div>
       {open && (
+        <>
         <ol className="guide-steps">
           {steps.map((s, i) => {
             const isCurrent = i === current
@@ -77,6 +75,12 @@ export function DemoGuide({ steps, onRestart, restartDisabled }: { steps: GuideS
             )
           })}
         </ol>
+        <div className="guide-foot">
+          <button className="btn btn-sm" onClick={onRestart} disabled={restartDisabled}>
+            {t('guide.restart')}
+          </button>
+        </div>
+        </>
       )}
     </section>
   )

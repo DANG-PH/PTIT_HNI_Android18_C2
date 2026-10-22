@@ -947,3 +947,49 @@ tbody tr:hover td { background: color-mix(in srgb, var(--ink) 3%, transparent); 
 .chat-empty p { margin: 0; max-width: 440px; color: var(--muted); font-size: 14px; }
 .chat-empty .pill { margin-top: 6px; }
 @media (max-width: 1200px) { .chat-empty .pill { display: none; } }
+
+/* Chat thread grows from the top: a turn keeps its natural height instead of stretching to fill the panel. */
+.thread.chat-scroll { display: flex; flex-direction: column; gap: 14px; }
+.thread.chat-scroll > * { flex: none; }
+.thread.chat-scroll > .chat-empty { flex: 1 0 auto; height: auto; }
+.turn { align-content: start; }
+/* Why the AI has to ask: shown on the consent card while the decision is pending. */
+.consent-why { display: flex; gap: 7px; align-items: flex-start; margin: 0 0 8px; font-size: 12.5px; line-height: 1.45; color: var(--muted); }
+.consent-why svg { flex: none; margin-top: 2px; }
+
+/* Operator page: room between the trust strip and the store table. */
+.stats + .card { margin-top: 18px; }
+
+/* Vault rows: at most two lines of title (full title on hover), so more of the vault fits on screen. */
+.doc .title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+
+/* Guided demo: label and Hide share the first line; Restart sits under the steps. */
+.side-col .guide > .row { grid-template-columns: 1fr auto; }
+.guide .eyebrow { white-space: nowrap; }
+.guide-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+
+/* Phones: one wide trust tile over three small ones; the nav takes its own row under the brand. */
+@media (max-width: 900px) {
+  .side-col .stats-side { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .stats-side .stat-emphasis { grid-column: 1 / -1; order: -1; }
+}
+@media (max-width: 560px) {
+  .topbar { flex-wrap: wrap; row-gap: 10px; padding: 10px 16px; }
+  .topbar nav { width: 100%; gap: 8px; }
+  .topbar nav .pill { display: none; }
+}
+.add-form { padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: var(--radius-control); background: var(--surface); }
+/* File picker: a drop zone at the top of the add form. */
+.file-pick {
+  position: relative; display: grid; justify-items: center; gap: 4px; margin: 0; padding: 14px 12px; text-align: center;
+  border: 1.5px dashed var(--border); border-radius: var(--radius-control); background: var(--surface-2); cursor: pointer;
+  transition: border-color 0.2s var(--ease);
+}
+.file-pick:hover, .file-pick:focus-within { border-color: var(--text); }
+.file-pick input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.file-pick span { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.file-note { margin: 6px 0 0; }
+/* Denser vault rows so a full demo vault fits without scrolling. */
+.vault-card .doc-list { gap: 6px; }
+.vault-card .doc { padding: 8px 12px; }
+.vault-card .doc .title { line-height: 1.3; }

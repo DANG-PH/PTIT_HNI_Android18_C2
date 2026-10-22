@@ -9,10 +9,11 @@
     "init": "bash init/tcinit.sh"
   },
   "dependencies": {
+    "@tidecloak/nextjs": "0.14.40",
     "next": "16.x",
+    "pdfjs-dist": "^4.10.38",
     "react": "19.x",
-    "react-dom": "19.x",
-    "@tidecloak/nextjs": "0.14.40"
+    "react-dom": "19.x"
   },
   "overrides": {
     "postcss": "^8.5.25",
