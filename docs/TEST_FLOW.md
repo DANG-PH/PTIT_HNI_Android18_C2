@@ -8,7 +8,7 @@ Tài liệu dành cho thành viên nhóm và người kiểm thử. Mỗi bướ
 
 ## 1. Luồng người dùng: Guided demo 4 bước
 
-Đăng nhập: **Sign in with Tide**, sau đó **Create an account** (lần đầu) hoặc nhập tài khoản có sẵn. Trang `/home` hiển thị khung **Guided demo** ở trên cùng; bước cần làm tiếp theo được viền đậm.
+Đăng nhập: **Sign in with Tide**, sau đó **Create an account** (lần đầu) hoặc nhập tài khoản có sẵn. Trang `/home` hiển thị khung **Guided demo** ở cột bên phải (trên màn hình hẹp thì nằm trên cùng); bước cần làm tiếp theo được viền đậm.
 
 | Bước | Thao tác | Kết quả mong đợi | Điều được chứng minh |
 |---|---|---|---|
@@ -16,6 +16,8 @@ Tài liệu dành cho thành viên nhóm và người kiểm thử. Mỗi bướ
 | 2. Ask with consent | Bấm **Ask about the surgery** | AI chỉ xin 3/7 tài liệu (không xin hộ chiếu). Bấm **Release 3 for this question**. Câu trả lời có trích dẫn: bảo hiểm chi trả $10,380, người dùng tự trả $2,920. Mở **Show exactly what the AI received** để thấy tên và số định danh đã được che (`[name]`, `[policy no.]`…) | AI chỉ được biết đúng điều cần biết; thông tin định danh không rời khỏi trình duyệt |
 | 3. Red-team the AI | Bấm **Run a hijacked AI** | AI bị chiếm quyền xin 7/7 tài liệu (cảnh báo đỏ). Chỉ giữ hóa đơn và hợp đồng bảo hiểm, rồi bấm Release. Kết quả hiển thị cảnh báo `export_all_documents()`, liên kết lạ bị gỡ, và yêu cầu xin thêm tài liệu được đánh dấu. Bấm **Deny all** | Kể cả khi AI bị prompt injection, dữ liệu không thể bị lấy đi: AI không có khóa, không có công cụ |
 | 4. Look as the operator | Bấm **Open operator console** (chỉ khi tài khoản có vai trò `ntk-operator`) | Bảng hiển thị toàn bộ cơ sở dữ liệu dưới dạng bản mã. Bấm **Try to decrypt** ở một dòng **không** phải của bạn: hiển thị "20 of 20 independent Tide nodes declined". Bấm **Run rogue agent**: AI phía máy chủ trả lời rằng nó không đọc được dữ liệu | Không tồn tại master key: ngay cả nhà vận hành và AI phía máy chủ cũng không đọc được dữ liệu của người khác |
+
+**Tài liệu của chính bạn:** bấm **+ Add document**, chọn hoặc kéo thả tệp PDF/TXT/MD/CSV. Văn bản được trích ngay trên trình duyệt (PDF dùng pdf.js), hiện vào ô nội dung để kiểm tra, rồi **Encrypt & store** mã hóa bằng Tide trước khi gửi. Bản thân tệp không bao giờ rời máy; máy chủ chỉ nhận bản mã. Ảnh scan (không có lớp chữ) chưa được hỗ trợ.
 
 Sau đó mở tab **Disclosure receipts** để xem nhật ký: mỗi lần chia sẻ tiêu đề, tiết lộ nội dung hay từ chối đều được ghi lại, kèm tên model đã trả lời. **Restart demo** xóa kho và biên nhận để chạy lại từ đầu.
 

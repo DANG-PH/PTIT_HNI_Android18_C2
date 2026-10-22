@@ -20,6 +20,7 @@ cd frontend && npm install && npm run dev             # Web: http://localhost:30
 | `app/operator/page.tsx` | Operator console | Tự do về giao diện |
 | `app/components/DemoGuide.tsx` | Khung **Guided demo** 4 bước trên trang `/home` | Tự do về giao diện; giữ đủ 4 bước và điều kiện hoàn thành của từng bước |
 | `app/lib/redact.ts` | Che tên và số định danh trên trình duyệt trước khi gửi AI | **Không nới lỏng quy tắc che** |
+| `app/lib/file-text.ts` | Trích văn bản từ tệp người dùng chọn (PDF qua pdf.js) ngay trên trình duyệt | **Không chuyển việc trích xuất lên máy chủ**: máy chủ chỉ được nhận bản mã |
 | `app/globals.css` | Design tokens (`:root`, dark mode) và các lớp dùng chung | Tự do |
 | `app/lib/i18n.tsx` | Từ điển EN/VI, `useI18n()`, `LangSwitch` | Thêm khóa mới vào **cả hai** từ điển |
 | `app/lib/demo-docs.ts` | Dữ liệu giả lập và câu hỏi gợi ý | Chỉ sửa khi thống nhất với kịch bản video |

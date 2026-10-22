@@ -42,6 +42,6 @@ Guided demo: seal a synthetic vault, ask about the surgery and approve, then run
 |---|---|
 | `linh-ntk-ziyxp` | `Ga0gC7FNHdFnIrlxShj2` |
 
-Then follow the four-step **Guided demo** at the top of the page. You can also choose **Create an account** to use your own Tide identity (new-account creation depends on Tide's network being reachable).
+Then follow the four-step **Guided demo** in the right-hand panel. To try your own file, use **+ Add document** and choose or drop a PDF or text file: it is parsed and encrypted in your browser, and only ciphertext reaches the server. You can also choose **Create an account** to use your own Tide identity (new-account creation depends on Tide's network being reachable).
 
 Run it yourself: see [docs/SETUP.md](docs/SETUP.md).
