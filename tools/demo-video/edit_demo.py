@@ -209,9 +209,11 @@ if narration:
         inputs += ['-i', path]
         chains.append(f'[{k + 1}:a]aresample=48000,adelay={delay}:all=1[a{k}]')
         labels.append(f'[a{k}]')
-    graph = ';'.join(chains) + f";{''.join(labels)}amix=inputs={len(labels)}:normalize=0:dropout_transition=0,apad[aout]"
+    # Pad the mix to exactly the video's length and cap the output there (apad alone never ends).
+    graph = (';'.join(chains) + f";{''.join(labels)}amix=inputs={len(labels)}:normalize=0:dropout_transition=0,"
+             f'apad=whole_dur={clock:.3f}[aout]')
     run([ffmpeg, '-y', '-loglevel', 'error', '-i', silent, *inputs, '-filter_complex', graph, '-map', '0:v',
-         '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-shortest', '-movflags', '+faststart',
+         '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k', '-t', f'{clock:.3f}', '-movflags', '+faststart',
          out_path])
 else:
     run([ffmpeg, '-y', '-loglevel', 'error', '-i', silent, '-c', 'copy', '-movflags', '+faststart', out_path])
