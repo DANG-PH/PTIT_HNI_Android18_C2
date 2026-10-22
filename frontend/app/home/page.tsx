@@ -4,7 +4,7 @@ import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { DemoGuide, type GuideStep } from '../components/DemoGuide'
-import { Glyph } from '../components/Glyph'
+import { Glyph, type GlyphName } from '../components/Glyph'
 import { ThresholdRing } from '../components/ThresholdRing'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { DEMO_DOCS, DEMO_PERSONA, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
@@ -46,6 +46,14 @@ interface Turn {
 }
 
 const CATEGORIES: Category[] = ['health', 'insurance', 'finance', 'legal', 'identity', 'other']
+const CATEGORY_GLYPH: Record<string, GlyphName> = {
+  health: 'heart',
+  insurance: 'shield',
+  finance: 'wallet',
+  legal: 'file',
+  identity: 'id',
+  other: 'file',
+}
 
 export default function HomePage() {
   const { authenticated, isInitializing, logout, hasRealmRole, getValueFromIdToken } = useTideCloak()
@@ -339,6 +347,12 @@ export default function HomePage() {
       </header>
 
       <main className="page grid">
+        <section className="stats" aria-label={t('stats.label')}>
+          <Stat glyph="lock" value={storedCount} label={t('stats.sealed')} />
+          <Stat glyph="key" value={0} label={t('stats.keys')} note={t('stats.keysNote')} emphasis />
+          <Stat glyph="bot" value={turns.reduce((n, x) => n + (x.answer ? x.released.length : 0), 0)} label={t('stats.released')} />
+          <Stat glyph="eye" value={turns.reduce((n, x) => n + (x.masked ?? 0), 0)} label={t('stats.masked')} />
+        </section>
         <DemoGuide steps={guide} onRestart={resetVault} restartDisabled={busy || inFlight || (!docs.length && !turns.length)} />
         <aside>
           <section className="card">
@@ -368,6 +382,12 @@ export default function HomePage() {
               <ul className="doc-list">
                 {docs.map((d) => (
                   <li className="doc" key={d.id}>
+                    <span className="doc-icon" aria-hidden="true">
+                      <Glyph name={CATEGORY_GLYPH[d.category] ?? 'file'} />
+                      <span className="doc-lock">
+                        <Glyph name="lock" />
+                      </span>
+                    </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div className="title">{d.title}</div>
                       <div className="meta">
@@ -375,7 +395,7 @@ export default function HomePage() {
                       </div>
                       {showCiphertext && <div className="ct">{d.bodyCt.slice(0, 120)}…</div>}
                     </div>
-                    <button className="btn btn-sm btn-danger" onClick={() => removeDoc(d.id)} disabled={busy} title={t('vault.delete')}>
+                    <button className="btn btn-sm btn-danger doc-delete" onClick={() => removeDoc(d.id)} disabled={busy} title={t('vault.delete')} aria-label={t('vault.delete')}>
                       ✕
                     </button>
                   </li>
@@ -490,7 +510,7 @@ export default function HomePage() {
               </div>
 
               <form
-                style={{ marginTop: 16 }}
+                className="composer"
                 onSubmit={(e) => {
                   e.preventDefault()
                   ask(question)
@@ -508,9 +528,10 @@ export default function HomePage() {
                     }
                   }}
                 />
-                <div className="row" style={{ marginTop: 8 }}>
-                  <button className="btn btn-primary" disabled={!question.trim() || docs.length === 0}>
-                    {t('ask.submit')}
+                <div className="composer-bar">
+                  <span className="small muted">{t('ask.hint')}</span>
+                  <button className="btn btn-primary composer-send" disabled={!question.trim() || docs.length === 0} aria-label={t('ask.submit')}>
+                    {t('ask.submit')} <Glyph name="send" />
                   </button>
                 </div>
               </form>
@@ -575,18 +596,17 @@ function TurnView(props: {
             </label>
           ))}
           {t.phase === 'consent' && (
-            <label className="switch mask-switch">
-              <input type="checkbox" checked={t.mask} onChange={props.onToggleMask} />
-              <Glyph name="eye" /> {tr('mask.toggle')}
-            </label>
-          )}
-          {t.phase === 'consent' && (
-            <div className="row" style={{ marginTop: 10 }}>
-              <button className="btn btn-primary btn-sm" onClick={props.onRelease} disabled={!t.selection.length}>
-                {tr('turn.release', { n: t.selection.length })}
-              </button>
+            <div className="consent-foot">
+              <label className="switch mask-switch">
+                <input type="checkbox" checked={t.mask} onChange={props.onToggleMask} />
+                <Glyph name="eye" /> {tr('mask.toggle')}
+              </label>
+              <span className="spacer" />
               <button className="btn btn-sm" onClick={props.onDeny}>
                 {tr('turn.deny')}
+              </button>
+              <button className="btn btn-primary btn-sm" onClick={props.onRelease} disabled={!t.selection.length}>
+                {tr('turn.release', { n: t.selection.length })}
               </button>
             </div>
           )}
@@ -629,6 +649,10 @@ function TurnView(props: {
             </div>
           )}
           <div className="bubble ai">
+            <div className="bubble-head">
+              <Glyph name="bot" /> {tr('answer.by')}
+              {t.answer.model && <span className="muted"> · {t.answer.model}</span>}
+            </div>
             <RichAnswer text={t.answer.answer} titles={titles} />
             {t.released.length > 0 && (
               <div className="row small muted" style={{ marginTop: 10 }}>
@@ -787,5 +811,20 @@ function ReceiptsView({
         </table>
       </div>
     </>
+  )
+}
+
+function Stat({ glyph, value, label, note, emphasis }: { glyph: GlyphName; value: number; label: string; note?: string; emphasis?: boolean }) {
+  return (
+    <div className={`card stat${emphasis ? ' stat-emphasis' : ''}`}>
+      <span className="stat-icon" aria-hidden="true">
+        <Glyph name={glyph} />
+      </span>
+      <div>
+        <div className="stat-value">{value}</div>
+        <div className="stat-label">{label}</div>
+        {note && <div className="stat-note">{note}</div>}
+      </div>
+    </div>
   )
 }

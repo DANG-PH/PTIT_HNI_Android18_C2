@@ -4,7 +4,7 @@ import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import tcConfig from '../../tidecloak.json'
-import { Glyph } from '../components/Glyph'
+import { Glyph, type GlyphName } from '../components/Glyph'
 import { ThresholdRing } from '../components/ThresholdRing'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
@@ -106,6 +106,13 @@ export default function OperatorPage() {
             {t('op.noRole')}
           </div>
         )}
+
+        <section className="stats" aria-label={t('stats.label')}>
+          <OpStat glyph="file" value={totals?.documents ?? 0} label={t('op.stat.docs')} />
+          <OpStat glyph="id" value={totals?.owners ?? 0} label={t('op.stat.users')} />
+          <OpStat glyph="key" value={0} label={t('op.stat.keys')} note={t('stats.keysNote')} emphasis />
+          <OpStat glyph="stop" value={Object.values(attempts).filter((x) => x.state === 'refused').length} label={t('op.stat.refused')} />
+        </section>
 
         <section className="card">
           <div className="row">
@@ -226,4 +233,19 @@ function RefusalSummary({ raw }: { raw: string }) {
   const m = raw.match(/got \d+ of (\d+) required, (\d+) of (\d+) failed/)
   if (!m) return <>{raw.slice(0, 160)}</>
   return <>{t('op.refusedSummary', { need: m[1], failed: m[2], total: m[3] })}</>
+}
+
+function OpStat({ glyph, value, label, note, emphasis }: { glyph: GlyphName; value: number; label: string; note?: string; emphasis?: boolean }) {
+  return (
+    <div className={`card stat${emphasis ? ' stat-emphasis' : ''}`}>
+      <span className="stat-icon" aria-hidden="true">
+        <Glyph name={glyph} />
+      </span>
+      <div>
+        <div className="stat-value">{value}</div>
+        <div className="stat-label">{label}</div>
+        {note && <div className="stat-note">{note}</div>}
+      </div>
+    </div>
+  )
 }

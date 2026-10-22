@@ -36,6 +36,8 @@ export interface AnswerResult {
   injectionNote: string
   toolCalls: string[]
   blockedLinks: string[]
+  /** The Gemini model that actually answered (may be a fallback). */
+  model?: string
 }
 
 export interface Receipt {
