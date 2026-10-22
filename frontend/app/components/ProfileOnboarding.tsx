@@ -188,7 +188,7 @@ export function ProfileOnboarding({
           )}
           <button type="button" onClick={save} disabled={busy}
                   style={{ padding: ".5rem .9rem", borderRadius: 6, border: "none",
-                           background: "var(--accent, #1f6feb)", color: "#fff", cursor: "pointer" }}>
+                           background: "var(--fill-bg, var(--accent, #1f6feb))", color: "var(--fill-fg, #fff)", cursor: "pointer" }}>
             {busy ? "Saving…" : "Save"}
           </button>
         </div>

@@ -29,7 +29,8 @@ cd frontend && npm install && npm run dev             # Web: http://localhost:30
 ## Quy ước
 
 - **Mọi chuỗi hiển thị phải đi qua `t('khóa')`.** Khóa mới cần có trong cả `en` và `vi`; TypeScript sẽ báo lỗi nếu bản `vi` thiếu khóa.
-- **Màu sắc dùng biến CSS** (`var(--accent)`, `var(--danger)`…). Chế độ tối được định nghĩa sẵn trong `@media (prefers-color-scheme: dark)`.
+- **Màu sắc dùng biến CSS** (`var(--accent)`, `var(--danger)`…). Giao diện chỉ dùng đen trắng; đỏ, vàng, xanh lá chỉ dành cho trạng thái nguy hiểm, cảnh báo, thành công. Bảng màu tối nằm ở **hai** chỗ trong `globals.css`: `@media (prefers-color-scheme: dark)` (theo hệ điều hành) và `:root[data-theme='dark']` (nút sáng/tối); sửa thì sửa cả hai.
+- **Không dùng emoji.** Icon dùng `<Glyph name="…" />` trong `app/components/Glyph.tsx`; icon tự lấy màu chữ xung quanh.
 - **Không hiển thị HTML, liên kết hay hình ảnh do AI sinh ra.** `RichAnswer` cố ý chỉ hiển thị văn bản thuần, vì liên kết và hình ảnh là kênh rò rỉ dữ liệu.
 - **Ẩn hoặc hiện nút theo vai trò chỉ là trải nghiệm người dùng.** Phân quyền thật được kiểm tra ở backend trên token ký theo ngưỡng.
 - **Thao tác mở enclave Tide nên gắn với một cú click** (ví dụ nút "Unlock vault"), vì trình duyệt chặn popup không xuất phát từ thao tác của người dùng.

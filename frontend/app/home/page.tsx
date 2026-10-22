@@ -3,6 +3,8 @@
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Glyph } from '../components/Glyph'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { DEMO_DOCS, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import {
@@ -265,6 +267,7 @@ export default function HomePage() {
             {t('nav.signOut')}
           </button>
           <LangSwitch />
+          <ThemeToggle />
         </nav>
       </header>
 
@@ -274,7 +277,7 @@ export default function HomePage() {
             <div className="row">
               <h2>{t('vault.title')}</h2>
               <span className="spacer" />
-              <span className="pill pill-accent">🔐 E2EE · Tide</span>
+              <span className="pill pill-accent"><Glyph name="lock" /> E2EE · Tide</span>
             </div>
             <p className="sub">{t('vault.sub')}</p>
 
@@ -282,7 +285,7 @@ export default function HomePage() {
               <div className="alert alert-warn small" style={{ marginBottom: 10 }}>
                 {t('vault.locked')}{' '}
                 <button className="btn btn-primary btn-sm" onClick={loadVault}>
-                  {t('vault.unlock')}
+                  <Glyph name="unlock" /> {t('vault.unlock')}
                 </button>
               </div>
             )}
@@ -486,14 +489,16 @@ function TurnView(props: {
     <>
       <div className="bubble user">
         {t.question}
-        {t.hijacked && <div className="small" style={{ opacity: 0.85, marginTop: 4 }}>{tr('turn.hijackedTag')}</div>}
+        {t.hijacked && <div className="small" style={{ opacity: 0.85, marginTop: 4 }}><Glyph name="alert" /> {tr('turn.hijackedTag')}</div>}
       </div>
 
       {t.phase === 'planning' && <Step>{tr('turn.planning')}</Step>}
 
       {t.plan && t.plan.needed.length > 0 && (
         <div className={`consent ${many ? 'flagged' : ''}`}>
-          <h3>{tr('turn.asks', { n: t.plan.needed.length, total })}</h3>
+          <h3>
+            <Glyph name="bot" /> {tr('turn.asks', { n: t.plan.needed.length, total })}
+          </h3>
           {t.plan.message && <p className="small" style={{ margin: '0 0 8px' }}>{t.plan.message}</p>}
           {many && (
             <div className="alert alert-danger small" style={{ marginBottom: 8 }}>
@@ -537,17 +542,17 @@ function TurnView(props: {
         <>
           {t.answer.toolCalls.length > 0 && (
             <div className="alert alert-danger small">
-              {tr('turn.toolCallsBefore')} <code>{t.answer.toolCalls.join(', ')}</code>. {tr('turn.toolCallsAfter')}
+              <Glyph name="stop" /> {tr('turn.toolCallsBefore')} <code>{t.answer.toolCalls.join(', ')}</code>. {tr('turn.toolCallsAfter')}
             </div>
           )}
           {t.answer.injectionSuspected && (
             <div className="alert alert-warn small">
-              {tr('turn.injection')} {t.answer.injectionNote}
+              <Glyph name="alert" /> {tr('turn.injection')} {t.answer.injectionNote}
             </div>
           )}
           {t.answer.blockedLinks.length > 0 && (
             <div className="alert alert-danger small">
-              {tr('turn.links', { n: t.answer.blockedLinks.length })}{' '}
+              <Glyph name="link" /> {tr('turn.links', { n: t.answer.blockedLinks.length })}{' '}
               <code>{t.answer.blockedLinks.join(' ')}</code>
             </div>
           )}
@@ -567,7 +572,9 @@ function TurnView(props: {
 
           {t.answer.followUps.length > 0 && !t.followUpsResolved && (
             <div className="consent flagged">
-              <h3>{tr('turn.followTitle', { n: t.answer.followUps.length })}</h3>
+              <h3>
+                <Glyph name="alert" /> {tr('turn.followTitle', { n: t.answer.followUps.length })}
+              </h3>
               <p className="small" style={{ margin: '0 0 8px' }}>
                 {tr('turn.followBody')}{' '}
                 <strong>{t.released.map((r) => r.title.split(':')[0]).join(', ')}</strong>.

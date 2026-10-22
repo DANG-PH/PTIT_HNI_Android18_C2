@@ -4,6 +4,8 @@ import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useState } from 'react'
 import tcConfig from '../../tidecloak.json'
+import { Glyph } from '../components/Glyph'
+import { ThemeToggle } from '../components/ThemeToggle'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
 import { errorText, useApi, useVaultCrypto } from '../lib/vault'
 
@@ -93,6 +95,7 @@ export default function OperatorPage() {
             {t('nav.signOut')}
           </button>
           <LangSwitch />
+          <ThemeToggle />
         </nav>
       </header>
 
@@ -146,7 +149,7 @@ export default function OperatorPage() {
                         </button>
                         {a?.state === 'refused' && (
                           <div className="alert alert-danger small" style={{ marginTop: 6 }}>
-                            {t('op.refused')} {a.text}
+                            <Glyph name="stop" /> {t('op.refused')} {a.text}
                           </div>
                         )}
                         {a?.state === 'ok' && (
