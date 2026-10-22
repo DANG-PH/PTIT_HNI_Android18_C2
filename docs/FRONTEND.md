@@ -18,6 +18,8 @@ cd frontend && npm install && npm run dev             # Web: http://localhost:30
 | `app/page.tsx` | Trang giới thiệu và nút đăng nhập | Tự do |
 | `app/home/page.tsx` | Kho tài liệu, hỏi AI, thẻ xin phép, biên nhận | Tự do về giao diện; giữ nguyên các lời gọi `encrypt`/`decrypt`/`api` |
 | `app/operator/page.tsx` | Operator console | Tự do về giao diện |
+| `app/components/DemoGuide.tsx` | Khung **Guided demo** 4 bước trên trang `/home` | Tự do về giao diện; giữ đủ 4 bước và điều kiện hoàn thành của từng bước |
+| `app/lib/redact.ts` | Che tên và số định danh trên trình duyệt trước khi gửi AI | **Không nới lỏng quy tắc che** |
 | `app/globals.css` | Design tokens (`:root`, dark mode) và các lớp dùng chung | Tự do |
 | `app/lib/i18n.tsx` | Từ điển EN/VI, `useI18n()`, `LangSwitch` | Thêm khóa mới vào **cả hai** từ điển |
 | `app/lib/demo-docs.ts` | Dữ liệu giả lập và câu hỏi gợi ý | Chỉ sửa khi thống nhất với kịch bản video |

@@ -20,7 +20,7 @@ work = os.path.join(rec, 'edit')
 os.makedirs(work, exist_ok=True)
 FONTS = '/usr/share/fonts/truetype/noto'
 
-V = {'linh': facts['linhVideo'], 'admin': facts['adminVideo']}
+V = {'user': facts['userVideo'], 'admin': facts['adminVideo']}
 console_marks = os.path.join(rec, 'console-marks.json')
 if os.path.exists(console_marks):  # governance scene recorded on its own
     c = json.load(open(console_marks))
@@ -64,42 +64,42 @@ failed, total = (refused.group(1), refused.group(2)) if refused else ('20', '20'
 
 # (narration group, source, start, end, target seconds or None for real time, caption)
 S = [
-    ('g1', 'linh', m('linh', 'landing') - 1.0, m('linh', 'signin'), None,
+    ('g1', 'user', m('user', 'landing') - 1.0, m('user', 'signin'), None,
      'AI could save us hours on our most private paperwork. But those are exactly the documents we never give an AI.'),
-    ('g1', 'linh', m('linh', 'signin'), m('linh', 'home'), 6.0,
+    ('g1', 'user', m('user', 'signin'), m('user', 'home'), 6.0,
      'To read your files, an AI service holds the keys, so its admins, attackers or a hijacked agent can read everything.'),
-    ('g2', 'linh', m('linh', 'guide'), m('linh', 'encrypt'), None,
+    ('g2', 'user', m('user', 'guide'), m('user', 'encrypt'), None,
      'NeedToKnow, built with TideCloak. Step 1: seal a sample vault.'),
-    ('g2', 'linh', m('linh', 'encrypt'), m('linh', 'encrypted'), 3.0,
-     "Linh's documents are encrypted in her browser. No master key exists anywhere."),
-    ('g2', 'linh', m('linh', 'ciphertext'), m('linh', 'ciphertext') + 3.4, None,
+    ('g2', 'user', m('user', 'encrypt'), m('user', 'encrypted'), 3.0,
+     "Your documents are encrypted in your browser. No master key exists anywhere."),
+    ('g2', 'user', m('user', 'ciphertext'), m('user', 'ciphertext') + 3.4, None,
      'All the server ever stores is ciphertext.'),
-    ('g3', 'linh', m('linh', 'ask1') - 0.8, m('linh', 'consent1'), 3.0,
-     'Step 2: she asks about her knee surgery. The AI sees only document titles...'),
-    ('g3', 'linh', m('linh', 'consent1'), m('linh', 'release1'), None,
-     f'...and asks for {n1} of 7 documents, not her passport. She releases them for this one question.'),
-    ('g3', 'linh', m('linh', 'release1'), m('linh', 'answer1'), 2.5,
-     f"Tide's network decrypts just those {n1}, inside her own session."),
-    ('g3b', 'linh', m('linh', 'answer1'), m('linh', 'masked'), None,
-     'A cited answer: insurance pays $10,380, she pays $2,920, and she can afford it.'
-     if answer_ok else 'A cited, step-by-step answer built only from the documents she released.'),
-    ('g3b', 'linh', m('linh', 'masked'), m('linh', 'masked') + 5.0, None,
-     f'Before anything left her browser, {nmask} names and ID numbers were masked. This is exactly what the AI saw.'),
-    ('g4', 'linh', m('linh', 'ask2') - 1.0, m('linh', 'consent2'), 3.0,
+    ('g3', 'user', m('user', 'ask1') - 0.8, m('user', 'consent1'), 3.0,
+     'Step 2: you ask about your knee surgery. The AI sees only document titles...'),
+    ('g3', 'user', m('user', 'consent1'), m('user', 'release1'), None,
+     f'...and asks for {n1} of 7 documents, not your passport. You release them for this one question.'),
+    ('g3', 'user', m('user', 'release1'), m('user', 'answer1'), 2.5,
+     f"Tide's network decrypts just those {n1}, inside your own session."),
+    ('g3b', 'user', m('user', 'answer1'), m('user', 'masked'), None,
+     'A cited answer: insurance pays $10,380, you pay $2,920, and you can afford it.'
+     if answer_ok else 'A cited, step-by-step answer built only from the documents you released.'),
+    ('g3b', 'user', m('user', 'masked'), m('user', 'masked') + 5.0, None,
+     f'Before anything left your browser, {nmask} names and ID numbers were masked. This is exactly what the AI saw.'),
+    ('g4', 'user', m('user', 'ask2') - 1.0, m('user', 'consent2'), 3.0,
      'Step 3: red-team it. A clinic invoice hides a prompt injection in French, and the AI is hijacked.'),
-    ('g4', 'linh', m('linh', 'consent2'), m('linh', 'release2'), 6.0,
-     f'The hijacked AI demands {n2} of 7 documents. Linh releases only the two that matter.'),
-    ('g4', 'linh', m('linh', 'release2'), m('linh', 'answer2'), 2.5,
+    ('g4', 'user', m('user', 'consent2'), m('user', 'release2'), 6.0,
+     f'The hijacked AI demands {n2} of 7 documents. You release only the two that matter.'),
+    ('g4', 'user', m('user', 'release2'), m('user', 'answer2'), 2.5,
      'Hijacked or not, the AI holds no key and no tools.'),
-    ('g4', 'linh', m('linh', 'answer2'), m('linh', 'denied'), None,
+    ('g4', 'user', m('user', 'answer2'), m('user', 'denied'), None,
      'It tries export_all_documents() and plants a phishing link. The link is stripped, nothing is exported, '
-     'and Linh denies the extra requests.'),
-    ('g4', 'linh', m('linh', 'receipts'), m('linh', 'linh-end'), None,
-     'Every disclosure lands on her receipt ledger, encrypted under her own key.'),
+     'and you deny the extra requests.'),
+    ('g4', 'user', m('user', 'receipts'), m('user', 'user-end'), None,
+     'Every disclosure lands on your receipt ledger, encrypted under your own key.'),
     ('g5', 'admin', m('admin', 'store') - 0.5, m('admin', 'decrypt'), 4.5,
      'Step 4: the platform operator. The whole database is open to them, and it is all ciphertext.'),
     ('g5', 'admin', m('admin', 'decrypt'), m('admin', 'refused'), 2.5,
-     "The operator tries to decrypt Linh's file with their own Tide session..."),
+     "The operator tries to decrypt your file with their own Tide session..."),
     ('g5', 'admin', m('admin', 'refused'), m('admin', 'refused') + 5.5, None,
      f'...and {failed} of {total} independent Tide nodes refuse. There is no master key to steal or abuse.'),
     ('g5', 'admin', m('admin', 'rogue'), m('admin', 'rogued'), 2.5,

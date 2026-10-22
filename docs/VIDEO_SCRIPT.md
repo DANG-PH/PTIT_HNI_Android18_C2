@@ -1,64 +1,24 @@
 # Kịch bản video demo
 
-> **Trạng thái:** repository đã có sẵn `demo.mp4` (khoảng 1 phút 48 giây, có phụ đề tiếng Anh). Video được quay tự động trên bản triển khai thực tế bằng `tools/demo-video/`. Kịch bản dưới đây dùng khi nhóm muốn quay lại bản có lồng tiếng.
+> **Trạng thái:** `demo.mp4` trong repository là bản có **giọng đọc tiếng Anh (Gemini TTS)** và **phụ đề**, dài dưới 2 phút. Video được quay tự động trên bản triển khai thực tế bằng `tools/demo-video/`. Muốn quay lại bằng giọng thật thì dùng đúng kịch bản dưới đây.
 
-**Yêu cầu kỹ thuật:** thời lượng 2 phút, định dạng `.mp4`, dung lượng dưới 100 MB, đặt tại thư mục gốc của repository với tên `demo.mp4` (README đã liên kết sẵn).
+**Yêu cầu kỹ thuật:** tối đa 2 phút, định dạng `.mp4`, dưới 100 MB, đặt ở thư mục gốc với tên `demo.mp4`.
 
-**Quy ước:**
-- **🎙 Lời thoại**: đọc bằng tiếng Anh, vì ban giám khảo là Tide và RMIT.
-- **🎬 Thao tác**: các bước thực hiện trên màn hình.
+Bố cục bám theo gợi ý của đề bài (**possibility → constraint → prototype và vai trò của TideCloak → what changes**) và theo đúng 4 bước của khung **Guided demo** trong ứng dụng.
 
-**Chuẩn bị:**
-- Quay tại `https://ntk.dangpham.id.vn`, cửa sổ trình duyệt khoảng 1280×800, zoom 110%.
-- Tab 1: tài khoản người dùng demo, vault để trống.
-- Tab 2: tài khoản quản trị viên có vai trò `ntk-operator`.
+| Cảnh | Thao tác trên màn hình | Lời thoại (tiếng Anh) |
+|---|---|---|
+| 1. Vấn đề | Trang chủ, rồi đăng nhập bằng Tide | *"AI could save us hours on our most private paperwork. But to read it, today's AI services hold the keys, so their admins, attackers, or a hijacked agent can read everything."* |
+| 2. Bước 1: niêm phong kho | **Load demo documents**, rồi bật **What the server sees** | *"NeedToKnow is built on TideCloak. Your documents are encrypted in your browser. The server only stores ciphertext, and no master key exists anywhere."* |
+| 3. Bước 2: hỏi có xin phép | **Ask about the surgery**: AI xin 3/7 tài liệu, chọn **Release 3** | *"You ask about your knee surgery. The AI sees only titles, and asks for three documents, not your passport. You approve, and Tide decrypts just those three, in your own session."* |
+| 4. Câu trả lời và che định danh | Câu trả lời có trích dẫn; mở **Show exactly what the AI received** | *"You get a cited answer: you pay two thousand, nine hundred and twenty dollars, and you can afford it. And before anything left your browser, your name and ID numbers were masked."* |
+| 5. Bước 3: tấn công AI | **Run a hijacked AI**: AI xin 7/7, chỉ chọn 2; cảnh báo `export_all_documents()`, liên kết bị gỡ; **Deny all**; tab **Disclosure receipts** | *"Now let's red-team it. A clinic invoice hides a prompt injection, and the hijacked AI demands all seven documents. You release only two. It tries to export everything and plant a phishing link, but it holds no key and no tools. The link is stripped, nothing leaves, and every disclosure lands on your receipts."* |
+| 6. Bước 4: nhà vận hành | **Operator console**: **Try to decrypt** tài liệu của người khác ("20 of 20 … declined"); **Run rogue agent** | *"The platform operator can see the whole database, and it's all ciphertext. Decrypting your file with the operator's own Tide session? Twenty out of twenty independent Tide nodes refuse. Even an AI agent with full database access gets nothing readable."* |
+| 7. Quản trị | Tide admin console: yêu cầu `Grant Roles` **Pending 0/1** (tạo bằng `infra/tidecloak/try-escalate.sh`) | *"And even with the server's root password, an attacker can only file a request that waits for Tide admins to sign."* |
+| 8. Kết | Màn hình kết | *"NeedToKnow. AI help for the documents that matter most, on a need-to-know basis. Built with TideCloak."* |
 
-Bố cục theo gợi ý của đề bài: **possibility → constraint → prototype (vai trò của TideCloak) → what changes**.
-
----
-
-## 0:00 – 0:15 · The possibility
-🎬 Trang chủ.
-🎙 *"AI could save us hours on our most important paperwork: medical results, insurance policies, bank statements. But those are exactly the documents we never hand to an AI. NeedToKnow changes that."*
-
-## 0:15 – 0:30 · The constraint
-🎬 Trang chủ, phần ba tính năng.
-🎙 *"Today, for an AI service to read your files, someone has to hold the decryption key: the operator, every admin, anyone who breaches the server, and the AI agent itself. One prompt injection and everything leaks. So we don't share."*
-
-## 0:30 – 1:05 · The prototype: giá trị cho người dùng
-🎬 Chọn **Load demo documents** và chờ thông báo mã hóa qua Tide. Bật **What the server sees** khoảng 2 giây để hiển thị bản mã, sau đó tắt.
-🎙 *"Linh's documents are encrypted in her browser with TideCloak. The server only ever stores ciphertext, and there's no master key anywhere: decryption is a threshold operation on Tide's network that only her live session can authorise."*
-
-🎬 Chọn **Try: surgery cost**, rồi **Ask**. Thẻ yêu cầu truy cập hiển thị 3 tài liệu (không có hộ chiếu). Chọn **Release 3 for this question**.
-🎙 *"The AI only sees titles. It asks for exactly three documents, not her passport. She releases them for this one question…"*
-
-🎬 Câu trả lời hiển thị kèm trích dẫn và phép tính.
-🎙 *"…and gets a cited answer: insurance pays $10,380, she pays $2,920, and she can afford it. An evening of reading, done in seconds."*
-
-## 1:05 – 1:35 · AI bị chiếm quyền
-🎬 Bật **Simulate hijacked AI**, chọn **Try: physio invoice**, rồi **Ask**. Thẻ cảnh báo đỏ: AI yêu cầu toàn bộ 7 tài liệu. Bỏ chọn, chỉ giữ hóa đơn và hợp đồng bảo hiểm, rồi chọn **Release 2**.
-🎙 *"Now we simulate a hijacked AI. The invoice hides a prompt injection in French. The AI demands everything…"*
-
-🎬 Kết quả hiển thị: cảnh báo `export_all_documents()`, liên kết bị loại bỏ, yêu cầu thêm 5 tài liệu. Chọn **Deny all**.
-🎙 *"…tries to run export_all_documents and plant a phishing link. But it has no key and no tools. The server only holds ciphertext. Linh denies, and nothing leaks. When the AI's own safety fails, TideCloak is the last line, and it's cryptographic, not a prompt."*
-
-## 1:35 – 1:52 · Quản trị viên không đọc được dữ liệu
-🎬 Chuyển sang tab 2, mở **Operator console**: toàn bộ bảng dữ liệu là bản mã. Chọn **Try to decrypt** trên một tài liệu của Linh: thông báo "Refused by the Tide network". Nếu đủ thời lượng, chọn thêm **Run rogue agent**.
-🎙 *"Even the platform operator, with the whole database and their own Tide session, can't decrypt Linh's files. And not even the server's root password can make anyone more powerful: role changes wait for Tide admins to sign them in their own enclaves."*
-
-> **Phương án thay thế cho câu thoại về quyền (khoảng 8 giây):** chạy `bash infra/tidecloak/try-escalate.sh <tài khoản Linh>` trong terminal. Server trả về mã thành công nhưng danh sách vai trò không đổi; thay vào đó xuất hiện change request `GRANT_ROLES` chờ chữ ký enclave.
-> 🎙 *"Even with the server's root password, an attacker only files a request. It does nothing until Tide admins sign it."*
-
-## 1:52 – 2:00 · What changes
-🎬 Quay lại tab 1, mở **Disclosure receipts**.
-🎙 *"Every disclosure is on Linh's receipt. NeedToKnow: AI help for the documents that matter most, on a need-to-know basis. Built with TideCloak."*
-
----
-
-## Ghi chú hậu kỳ
-- **Công cụ ghi màn hình:** OBS Studio, hoặc trình ghi tích hợp của Ubuntu (`Ctrl+Shift+Alt+R`). Xuất ở độ phân giải 720p.
-- **Cắt thời gian chờ:** mỗi lần gọi Gemini mất khoảng 5–10 giây; nên cắt hoặc tăng tốc các đoạn chờ.
-- **Nén nếu vượt dung lượng:**
-  ```bash
-  ffmpeg -i raw.mp4 -vf scale=1280:-2 -c:v libx264 -crf 28 -preset veryfast -c:a aac -b:a 96k demo.mp4
-  ```
+## Ghi chú khi quay thủ công
+- Cửa sổ trình duyệt khoảng 1280×800, chế độ sáng, ngôn ngữ EN.
+- Chuẩn bị trước một tài khoản có vai trò `ntk-operator` cho cảnh 6, và bấm **Restart demo** để kho trống trước khi quay.
+- Mỗi lần gọi Gemini mất 5–60 giây; nên cắt hoặc tua nhanh các đoạn chờ.
+- Nén nếu vượt dung lượng: `ffmpeg -i raw.mp4 -vf scale=1280:-2 -c:v libx264 -crf 28 -preset veryfast -c:a aac -b:a 96k demo.mp4`

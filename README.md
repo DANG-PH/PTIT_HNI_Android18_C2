@@ -8,25 +8,25 @@ Built with [TideCloak](https://tide.org/tidecloak?utm_source=github&utm_medium=r
 
 ### 1. Vision & originality
 
-AI on a need-to-know basis: it sees titles, asks for specific documents with reasons, and you release them for one answer. Every disclosure becomes a receipt. Prompt-injection resistance comes from architecture, not from hoping the model behaves.
+AI on a need-to-know basis: it sees titles, asks for specific documents with reasons, and you release them for one answer. Names and IDs are masked in your browser; every disclosure becomes a receipt. Prompt-injection resistance comes from architecture, not from hoping the model behaves.
 
 ### 2. Trust constraint insight
 
-For an AI service to read your documents, someone must hold the key, so the operator, insiders, attackers or a hijacked agent can reach everything. So people keep their most important paperwork away from AI. Without a master key, that becomes safe.
+To read your documents, an AI service must hold the key, so operators, insiders, attackers or a hijacked agent can reach everything. So people keep their most important paperwork away from AI. Without a master key, that becomes safe.
 
 ### 3. Value & impact
 
-Linh has an ACL surgery quote. Instead of an evening with a 30-page policy, she asks "what will I pay, and can I afford it?", releases three documents (never her passport) and gets a cited calculation. It serves patients, tenants and small businesses.
+A patient with an ACL surgery quote asks "what will I pay, and can I afford it?" instead of spending an evening with a 30-page policy, releases three documents (never their passport) and gets a cited calculation. It serves patients, tenants and small businesses.
 
 ### 4. Why TideCloak matters
 
-- **Tide self-encryption:** documents are encrypted in the browser. Decryption is a threshold operation on Tide's ORK network that only the owner's live session can authorise. Our server holds no key.
+- **Tide self-encryption:** documents are encrypted in the browser. Decryption is a threshold operation on Tide's ORK network that only the owner's session can authorise; our server holds no key.
 - Verified live: when an operator tries to decrypt another user's file, 20 of 20 Tide nodes refuse.
-- **IGA governance:** even the server's root admin credential can only file a role change; it applies only after Tide admins sign it in their enclaves (70% quorum).
+- **IGA governance:** even the server's root credential can only file a role change, applied only after Tide admins sign it in their enclaves.
 
 ### 5. Prototype & storytelling
 
-Load Linh's synthetic vault, ask about surgery, approve. Turn on "Simulate hijacked AI" and ask about the physio invoice: a hidden French injection makes the AI demand every document and call `export_all_documents()`. Deny: nothing leaks. In the operator console, decryption is refused.
+Guided demo: seal a synthetic vault, ask about the surgery and approve, then run a hijacked AI: a hidden French injection makes it demand every document and call `export_all_documents()`. Deny: nothing leaks. In the operator console, decryption is refused.
 
 | | |
 |---|---|
@@ -35,6 +35,6 @@ Load Linh's synthetic vault, ask about surgery, approve. Turn on "Simulate hijac
 
 ## Setup
 
-**Try the live demo:** open https://ntk.dangpham.id.vn, choose **Sign in with Tide → Create an account**, then **Load demo documents** and use the suggested questions (all data is synthetic). Toggle **Simulate hijacked AI** to see the red-team run.
+**Try the live demo:** open https://ntk.dangpham.id.vn, choose **Sign in with Tide → Create an account**, and follow the four-step **Guided demo** (all data is synthetic). A ready-made account with operator access is listed in our submission form.
 
 Run it yourself: see [docs/SETUP.md](docs/SETUP.md).

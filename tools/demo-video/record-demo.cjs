@@ -1,5 +1,5 @@
 // Records the NeedToKnow demo on production with two real browser sessions and writes scene marks.
-// Usage: node record-demo.cjs <outDir> ; env LINH_USER LINH_PASS ADMIN_USER ADMIN_PASS
+// Usage: node record-demo.cjs <outDir> ; env DEMO_USER DEMO_PASS ADMIN_USER ADMIN_PASS
 const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
@@ -8,7 +8,7 @@ const BASE = 'https://ntk.dangpham.id.vn';
 const CONSOLE = 'https://tide.dangpham.id.vn/admin/needtoknow/console/';
 const out = process.argv[2];
 const SIZE = { width: 1280, height: 800 };
-const marks = { linh: [], admin: [] };
+const marks = { user: [], admin: [] };
 const facts = {};
 
 function recorder(who, page, t0) {
@@ -46,24 +46,35 @@ async function signIn(page, r, user, pass) {
   const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', headless: true });
   const mk = () => browser.newContext({ viewport: SIZE, recordVideo: { dir: out, size: SIZE } });
 
-  // ───────────── Linh ─────────────
+  // ───────────── Demo user ─────────────
   const lctx = await mk();
   const lp = await lctx.newPage();
-  const L = recorder('linh', lp, Date.now());
+  lp.on('dialog', (d) => d.accept());
+  const L = recorder('user', lp, Date.now());
   await lp.goto(BASE + '/', { waitUntil: 'networkidle' });
   await lp.waitForTimeout(1500);
   L.mark('landing');
   await lp.waitForTimeout(4500);
   L.mark('signin');
-  await signIn(lp, L, process.env.LINH_USER, process.env.LINH_PASS);
+  await signIn(lp, L, process.env.DEMO_USER, process.env.DEMO_PASS);
   L.mark('home');
-
-  const load = lp.getByRole('button', { name: /load demo documents/i });
-  if (await load.isVisible().catch(() => false)) {
-    await L.click(load);
-    L.mark('encrypt');
-    await lp.getByText(/Stored 7 document/).waitFor({ timeout: 120000 });
+  await lp.locator('.guide-step').first().waitFor({ timeout: 60000 });
+  // Wait for the vault to finish decrypting titles before deciding whether it needs a reset.
+  await lp.waitForFunction(() => !document.querySelector('aside .spinner'), null, { timeout: 180000 });
+  await lp.waitForTimeout(1500);
+  const restart = lp.getByRole('button', { name: /restart demo/i });
+  if (await lp.locator('.doc').count() && await restart.isEnabled().catch(() => false)) {
+    await restart.click();
+    await lp.getByRole('button', { name: /load demo documents/i }).waitFor({ state: 'visible', timeout: 60000 });
+    await lp.waitForFunction(() => !document.querySelector('.doc'), null, { timeout: 60000 });
+    await lp.waitForTimeout(1500);
   }
+  L.mark('guide');
+  await lp.waitForTimeout(3500);
+  const load = lp.getByRole('button', { name: /load demo documents/i });
+  await L.click(load);
+  L.mark('encrypt');
+  await lp.getByText(/Stored 7 document/).waitFor({ timeout: 120000 });
   await lp.waitForTimeout(800);
   L.mark('encrypted');
   const sees = lp.getByLabel(/what the server sees/i);
@@ -75,29 +86,37 @@ async function signIn(page, r, user, pass) {
   await lp.locator('.doc').first().screenshot({ path: path.join(out, 'shot-doc.png') }).catch(() => {});
 
   // Ask: surgery
-  await L.click(lp.getByRole('button', { name: /try: surgery cost/i }));
-  await L.click(lp.getByRole('button', { name: /^ask$/i }));
+  await lp.locator('.guide').scrollIntoViewIfNeeded();
+  await L.click(lp.getByRole('button', { name: /ask about the surgery/i }));
   L.mark('ask1');
   const rel = lp.getByRole('button', { name: /release \d+ for this question/i });
   await rel.waitFor({ timeout: 120000 });
   await lp.locator('.consent').last().scrollIntoViewIfNeeded();
   facts.consent1 = await lp.locator('.consent h3').last().innerText();
   L.mark('consent1');
-  await lp.waitForTimeout(3500);
+  await lp.waitForTimeout(2200);
+  await L.hl(lp.locator('.mask-switch').last());
+  await lp.waitForTimeout(1200);
   await L.click(rel);
   L.mark('release1');
   await lp.locator('.bubble.ai').first().waitFor({ timeout: 180000 });
   await lp.locator('.bubble.ai').first().scrollIntoViewIfNeeded();
   facts.answer1 = await lp.locator('.bubble.ai').first().innerText();
   L.mark('answer1');
-  await lp.waitForTimeout(7000);
+  await lp.waitForTimeout(6000);
   await lp.screenshot({ path: path.join(out, 'shot-answer.png') });
+  const sent = lp.locator('details.sent').first();
+  await L.click(sent.locator('summary'));
+  facts.masked = await sent.locator('summary').innerText();
+  await sent.locator('pre').nth(2).scrollIntoViewIfNeeded().catch(() => {});
+  L.mark('masked');
+  await lp.waitForTimeout(5000);
+  await lp.screenshot({ path: path.join(out, 'shot-masked.png') });
 
   // Hijacked AI + injected invoice
-  const sim = lp.getByLabel(/simulate/i);
-  await L.hl(sim); await sim.check();
-  await L.click(lp.getByRole('button', { name: /try: physio invoice/i }));
-  await L.click(lp.getByRole('button', { name: /^ask$/i }));
+  await lp.locator('.guide').scrollIntoViewIfNeeded();
+  await lp.waitForTimeout(800);
+  await L.click(lp.getByRole('button', { name: /run a hijacked ai/i }));
   L.mark('ask2');
   await rel.waitFor({ timeout: 120000 });
   const card = lp.locator('.consent').last();
@@ -118,8 +137,8 @@ async function signIn(page, r, user, pass) {
   await lp.waitForTimeout(600);
   const alerts = lp.locator('.alert');
   facts.alerts2 = (await alerts.allInnerTexts()).join(' | ');
-  await lp.locator('.bubble.ai').nth(1).scrollIntoViewIfNeeded();
-  await lp.locator('.alert-danger').last().scrollIntoViewIfNeeded().catch(() => {});
+  await lp.locator('.alert-danger', { hasText: /tried to run/i }).last().evaluate((el) => el.scrollIntoView({ block: 'start' }));
+  await lp.mouse.wheel(0, -90);
   L.mark('answer2');
   await lp.waitForTimeout(5500);
   await lp.screenshot({ path: path.join(out, 'shot-hijacked.png') });
@@ -137,10 +156,10 @@ async function signIn(page, r, user, pass) {
   await lp.waitForTimeout(1500);
   L.mark('receipts');
   await lp.waitForTimeout(4000);
-  L.mark('linh-end');
-  const linhVideo = lp.video();
+  L.mark('user-end');
+  const userVideo = lp.video();
   await lctx.close();
-  facts.linhVideo = await linhVideo.path();
+  facts.userVideo = await userVideo.path();
 
   // ───────────── Operator (admin) ─────────────
   const actx = await mk();

@@ -26,7 +26,7 @@ NeedToKnow giải quyết trực tiếp ví dụ thứ hai: **AI nên được t
 
 ### Tình huống điển hình
 
-Người dùng (persona: Linh Tran) vừa nhận kết quả MRI đầu gối và được chỉ định phẫu thuật tái tạo dây chằng chéo trước, với báo giá **$13,300**. Câu hỏi cần trả lời:
+Một người dùng vừa nhận kết quả MRI đầu gối và được chỉ định phẫu thuật tái tạo dây chằng chéo trước, với báo giá **$13,300**. Câu hỏi cần trả lời:
 
 > "Bảo hiểm chi trả bao nhiêu, tôi phải tự thanh toán bao nhiêu, và số dư tài khoản có đủ không?"
 
@@ -50,7 +50,8 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 2. **AI chỉ được xem danh mục.** Khi nhận câu hỏi, Gemini chỉ thấy **tiêu đề** tài liệu và gửi **yêu cầu truy cập** kèm lý do, ví dụ: *"Cần hợp đồng bảo hiểm và báo giá bệnh viện để tính phần chi trả."*
 3. **Người dùng phê duyệt từng tài liệu.** Trình duyệt giải mã đúng các tài liệu được duyệt (qua mạng ORK) và gửi cho Gemini để trả lời **riêng câu hỏi đó**; bản rõ không được lưu lại.
 4. **Biên nhận tiết lộ (Disclosure receipts).** Mỗi lần AI tiếp cận dữ liệu đều được ghi nhận: tài liệu nào, thời điểm nào, cho câu hỏi nào. Câu hỏi trong biên nhận cũng được mã hóa bằng khóa của người dùng.
-5. **Mọi yêu cầu truy cập bổ sung phải được phê duyệt lại.** AI không có công cụ và không có khóa; máy chủ không giữ bản rõ. Yêu cầu phát sinh sau khi AI đọc tài liệu được đánh dấu cảnh báo, vì nội dung tài liệu có thể đang điều hướng AI.
+5. **Che định danh ngay trên trình duyệt.** Sau khi giải mã và trước khi gửi, tên, số hộ chiếu, số hợp đồng, BSB, số tài khoản, ngày sinh và email được thay bằng nhãn (`[name]`, `[policy no.]`…). Số tiền và các dữ kiện AI cần để tính toán được giữ nguyên. Người dùng xem được chính xác những gì AI đã nhận.
+6. **Mọi yêu cầu truy cập bổ sung phải được phê duyệt lại.** AI không có công cụ và không có khóa; máy chủ không giữ bản rõ. Yêu cầu phát sinh sau khi AI đọc tài liệu được đánh dấu cảnh báo, vì nội dung tài liệu có thể đang điều hướng AI.
 
 ---
 
@@ -88,6 +89,7 @@ Thông tin nằm rải rác trong ba tài liệu: **hợp đồng bảo hiểm**
 | Form hồ sơ mẫu ghi đè thuộc tính người dùng | IGA chặn thành change request `REMOVE_USER_ATTRIBUTE` (sẽ xóa `tideUserKey`/`vuid`); yêu cầu đã bị từ chối và form đã được gỡ bỏ |
 | AI bị chiếm quyền (prompt injection tiếng Pháp/Bồ Đào Nha) | AI đòi 7/7 tài liệu, cố gọi `export_all_documents()` và chèn liên kết; liên kết bị loại bỏ, không dữ liệu nào bị xuất |
 | AI agent phía máy chủ có toàn quyền đọc cơ sở dữ liệu | Chỉ nhận bản mã: *"The provided records are encoded or encrypted… cannot extract any personal information"* |
+| Che định danh trước khi gửi AI (câu hỏi phẫu thuật, 3 tài liệu) | 9 định danh được che; kết quả tính toán vẫn đúng ($10,380 / $2,920) |
 | Gemini quá tải (503) | Tự thử lại và chuyển model dự phòng; biên nhận ghi đúng model đã trả lời |
 
 ## 7. Giới hạn của giải pháp
