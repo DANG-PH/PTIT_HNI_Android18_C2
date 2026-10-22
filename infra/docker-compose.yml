@@ -1,19 +1,7 @@
 # Runs on the VPS from /root/needtoknow. nginx (host) proxies tide./ntk.dangpham.id.vn to these ports.
+# TideCloak runs as its own container (see docs/SETUP.md §1), on 127.0.0.1:8080 with
+# KC_HOSTNAME=https://tide.dangpham.id.vn, KC_PROXY_HEADERS=xforwarded, data in ./tidecloak-data.
 services:
-  tidecloak:
-    image: tideorg/tidecloak-dev:latest
-    container_name: ntk-tidecloak
-    restart: unless-stopped
-    ports: ["127.0.0.1:8080:8080"]
-    volumes: ["./tidecloak-data:/opt/keycloak/data/h2"]
-    environment:
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${KC_BOOTSTRAP_ADMIN_USERNAME}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KC_BOOTSTRAP_ADMIN_PASSWORD}
-      KC_HOSTNAME: https://tide.dangpham.id.vn
-      KC_PROXY_HEADERS: xforwarded
-      KC_HTTP_ENABLED: "true"
-    mem_limit: 1400m
-
   api:
     image: needtoknow-api:latest
     container_name: ntk-api
