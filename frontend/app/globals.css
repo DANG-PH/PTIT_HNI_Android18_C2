@@ -163,6 +163,7 @@ th { color: var(--muted); font-weight: 600; }
 .hero p.lead { font-size: 19px; color: var(--muted); max-width: 680px; margin: 18px 0 28px; }
 .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 1000px; margin: 0 auto; padding: 0 24px 72px; }
 @media (max-width: 800px) { .features { grid-template-columns: 1fr; } }
+.features .card + .card { margin-top: 0; }
 .features .card h3 { font-size: 16px; margin-bottom: 6px; }
 .features .card p { color: var(--muted); margin: 0; font-size: 14px; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

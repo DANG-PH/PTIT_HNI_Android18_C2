@@ -53,14 +53,19 @@ export class AiController {
       .map((e) => ({ id: e.id, title: String(e.title).slice(0, 200), category: String(e.category) }));
   }
 
-  private receipt(user: TideUser, kind: ReceiptKind, docIds: string[], extra: Partial<{ questionCt: string; note: string }> = {}) {
+  private receipt(
+    user: TideUser,
+    kind: ReceiptKind,
+    docIds: string[],
+    extra: Partial<{ questionCt: string; note: string; model: string }> = {},
+  ) {
     this.db.insertReceipt({
       id: randomUUID(),
       owner: user.sub,
       kind,
       doc_ids: JSON.stringify(docIds),
       question_ct: extra.questionCt ?? null,
-      model: kind === 'denied' ? null : this.ai.model,
+      model: kind === 'denied' ? null : (extra.model ?? this.ai.model),
       note: extra.note ?? null,
       created_at: new Date().toISOString(),
     });
@@ -72,7 +77,7 @@ export class AiController {
     const index = this.ownedIndex(user, body.index);
     const result = await this.ai.plan(question, index, !!body.hijacked);
     const known = new Set(index.map((e) => e.id));
-    this.receipt(user, 'index', index.map((e) => e.id), { note: 'titles only' });
+    this.receipt(user, 'index', index.map((e) => e.id), { note: 'titles only', model: result.model });
     return { ...result, needed: (result.needed ?? []).filter((r) => known.has(r.id)) };
   }
 
@@ -104,7 +109,10 @@ export class AiController {
       user,
       'disclosure',
       approved.map((d) => d.id),
-      { questionCt: typeof body.questionCt === 'string' ? body.questionCt : undefined },
+      {
+        questionCt: typeof body.questionCt === 'string' ? body.questionCt : undefined,
+        model: result.model,
+      },
     );
 
     // Links and images are an exfiltration channel: strip them before anything is rendered.

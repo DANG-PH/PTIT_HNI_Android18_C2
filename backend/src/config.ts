@@ -13,6 +13,12 @@ export const env = {
     process.env.TIDECLOAK_CONFIG ?? resolve(process.cwd(), '../frontend/tidecloak.json'),
   geminiApiKey: process.env.GEMINI_API_KEY ?? '',
   geminiModel: process.env.GEMINI_MODEL ?? 'gemini-2.5-flash',
+  geminiFallbackModels: (
+    process.env.GEMINI_FALLBACK_MODELS ?? 'gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3-flash-preview'
+  )
+    .split(',')
+    .map((m) => m.trim())
+    .filter(Boolean),
 };
 
 /** The subset of the TideCloak adapter export (tidecloak.json) the API needs. */

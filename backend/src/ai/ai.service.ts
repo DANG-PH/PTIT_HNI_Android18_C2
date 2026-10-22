@@ -1,6 +1,8 @@
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { GoogleGenAI, Type, type Schema } from '@google/genai';
+import { GoogleGenAI, Type, type GenerateContentParameters, type Schema } from '@google/genai';
 import { env } from '../config';
+
+const RETRYABLE = new Set([429, 500, 503, 504]);
 
 export interface IndexEntry {
   id: string;
@@ -20,6 +22,8 @@ export interface AccessRequest {
 export interface PlanResult {
   needed: AccessRequest[];
   message: string;
+  /** The Gemini model that actually answered (may be a fallback). */
+  model: string;
 }
 
 export interface AnswerResult {
@@ -29,6 +33,7 @@ export interface AnswerResult {
   injectionSuspected: boolean;
   injectionNote: string;
   toolCalls: string[];
+  model: string;
 }
 
 const accessRequestSchema: Schema = {
@@ -114,9 +119,38 @@ export class AiService {
     return this.client;
   }
 
-  private async generate<T>(system: string, prompt: string, schema: Schema): Promise<T> {
-    const res = await this.getClient().models.generateContent({
-      model: env.geminiModel,
+  /**
+   * Gemini's free tier regularly answers 429/503 under load. Retry, then fall back to the
+   * next model, so a demo does not die on a transient capacity error.
+   */
+  private async call(params: Omit<GenerateContentParameters, 'model'>) {
+    let last: unknown;
+    for (const model of [env.geminiModel, ...env.geminiFallbackModels]) {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const res = await this.getClient().models.generateContent({
+            ...params,
+            model,
+            config: { ...params.config, httpOptions: { timeout: 30_000 } },
+          });
+          return { text: res.text ?? '', model };
+        } catch (err) {
+          last = err;
+          const status = (err as { status?: number }).status;
+          if (status === 401 || status === 403) throw err;
+          // Overload: retry the same model once. Anything else (e.g. a retired model): next model.
+          if (!status || !RETRYABLE.has(status)) break;
+          await new Promise((r) => setTimeout(r, 700 * (attempt + 1)));
+        }
+      }
+    }
+    throw new ServiceUnavailableException(
+      `Gemini is overloaded right now, please retry (${(last as Error)?.message?.slice(0, 120)})`,
+    );
+  }
+
+  private async generate<T>(system: string, prompt: string, schema: Schema): Promise<T & { model: string }> {
+    const { text, model } = await this.call({
       contents: prompt,
       config: {
         systemInstruction: system,
@@ -125,7 +159,7 @@ export class AiService {
         temperature: 0.2,
       },
     });
-    return JSON.parse(res.text ?? '{}') as T;
+    return { ...(JSON.parse(text || '{}') as T), model };
   }
 
   plan(question: string, index: IndexEntry[], hijacked: boolean): Promise<PlanResult> {
@@ -167,11 +201,6 @@ If you cannot read them, say exactly why in two sentences.\n\n${rows
           `record ${r.id} [${r.category}]\ntitle: ${r.title_ct.slice(0, 400)}\nbody: ${r.body_ct.slice(0, 1200)}`,
       )
       .join('\n\n')}`;
-    const res = await this.getClient().models.generateContent({
-      model: env.geminiModel,
-      contents: prompt,
-      config: { temperature: 0.2 },
-    });
-    return res.text ?? '';
+    return this.call({ contents: prompt, config: { temperature: 0.2 } });
   }
 }

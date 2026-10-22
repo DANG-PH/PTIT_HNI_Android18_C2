@@ -45,7 +45,9 @@ export class OperatorController {
   @Post('rogue-agent')
   async rogue() {
     const rows = this.db.allDocs(6);
-    const output = rows.length ? await this.ai.rogueAgent(rows) : 'The store is empty.';
-    return { recordsGiven: rows.length, model: this.ai.model, output };
+    const result = rows.length
+      ? await this.ai.rogueAgent(rows)
+      : { text: 'The store is empty.', model: this.ai.model };
+    return { recordsGiven: rows.length, model: result.model, output: result.text };
   }
 }
