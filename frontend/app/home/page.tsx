@@ -3,10 +3,12 @@
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
 import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { DemoGuide, type GuideStep } from '../components/DemoGuide'
 import { Glyph } from '../components/Glyph'
 import { ThemeToggle } from '../components/ThemeToggle'
-import { DEMO_DOCS, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
+import { DEMO_DOCS, DEMO_PERSONA, DEMO_QUESTIONS, type Category } from '../lib/demo-docs'
 import { LangSwitch, useI18n, type I18nKey } from '../lib/i18n'
+import { redact } from '../lib/redact'
 import {
   errorText,
   useApi,
@@ -27,6 +29,9 @@ interface Turn {
   id: number
   question: string
   hijacked: boolean
+  /** Mask names and identifiers in the browser before anything is sent to the AI. */
+  mask: boolean
+  masked?: number
   phase: Phase
   questionCt?: Promise<string | undefined>
   plan?: PlanResult
@@ -57,7 +62,6 @@ export default function HomePage() {
 
   const [tab, setTab] = useState<'ask' | 'receipts'>('ask')
   const [question, setQuestion] = useState('')
-  const [hijacked, setHijacked] = useState(false)
   const [turns, setTurns] = useState<Turn[]>([])
 
   const [receipts, setReceipts] = useState<(Receipt & { question?: string })[]>([])
@@ -67,12 +71,27 @@ export default function HomePage() {
   const isOperator = hasRealmRole('ntk-operator')
   const titles = useMemo(() => new Map(docs.map((d) => [d.id, d.title])), [docs])
   const index = useMemo(() => docs.map((d) => ({ id: d.id, title: d.title, category: d.category })), [docs])
+  const ownNames = useMemo(
+    () =>
+      [DEMO_PERSONA, getValueFromIdToken('given_name'), getValueFromIdToken('family_name')].filter(
+        (n): n is string => typeof n === 'string' && n.length > 1,
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [authenticated],
+  )
+  /** The title index the AI plans with. Names in titles are masked too when masking is on. */
+  const aiIndex = useCallback(
+    (mask: boolean) => (mask ? index.map((e) => ({ ...e, title: redact(e.title, ownNames).text })) : index),
+    [index, ownNames],
+  )
 
   useEffect(() => {
     if (!isInitializing && !authenticated) router.push('/')
   }, [authenticated, isInitializing, router])
 
   const [locked, setLocked] = useState(false)
+  /** Documents on the server, decrypted or not: step 1 is done even if titles are still sealed. */
+  const [storedCount, setStoredCount] = useState(0)
 
   const loadVault = useCallback(async () => {
     setVaultState('loading')
@@ -80,6 +99,7 @@ export default function HomePage() {
     setLocked(false)
     try {
       const stored = await api<StoredDoc[]>('/docs')
+      setStoredCount(stored.length)
       // Titles are ciphertext too: decrypt them in one threshold call. Bodies stay sealed until released.
       // If the hidden enclave can't open, the SDK falls back to a popup, which browsers block without a
       // click, so after a while we offer an explicit Unlock button (a real user gesture).
@@ -146,10 +166,11 @@ export default function HomePage() {
   }, [])
 
   const ask = useCallback(
-    async (q: string) => {
+    async (q: string, opts: { hijacked?: boolean } = {}) => {
       const text = q.trim()
       if (!text) return
       const id = Date.now()
+      const hijacked = !!opts.hijacked
       // The question is kept in the receipt ledger encrypted under the user's own key.
       const questionCt = encrypt([text]).then(
         ([ct]) => ct,
@@ -157,13 +178,14 @@ export default function HomePage() {
       )
       setTurns((all) => [
         ...all,
-        { id, question: text, hijacked, phase: 'planning', questionCt, selection: [], released: [], followUpSelection: [] },
+        { id, question: text, hijacked, mask: true, phase: 'planning', questionCt, selection: [], released: [], followUpSelection: [] },
       ])
       setQuestion('')
+      requestAnimationFrame(() => document.getElementById(`turn-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
       try {
         const plan = await api<PlanResult>('/ai/plan', {
           method: 'POST',
-          body: JSON.stringify({ question: text, index, hijacked }),
+          body: JSON.stringify({ question: text, index: aiIndex(true), hijacked }),
         })
         updateTurn(id, { plan, phase: plan.needed.length ? 'consent' : 'done', selection: plan.needed.map((n) => n.id) })
         if (!plan.needed.length) {
@@ -183,7 +205,7 @@ export default function HomePage() {
         updateTurn(id, { phase: 'error', error: errorText(err) })
       }
     },
-    [api, encrypt, hijacked, index, updateTurn],
+    [api, encrypt, aiIndex, updateTurn],
   )
 
   /** Decrypts exactly the approved documents (live threshold call) and sends them for this answer only. */
@@ -193,18 +215,26 @@ export default function HomePage() {
       try {
         const chosen = docs.filter((d) => ids.includes(d.id))
         const bodies = await decrypt(chosen.map((d) => d.bodyCt))
+        // Minimisation happens here, in the browser, after decryption and before anything leaves it.
+        let masked = 0
         const released = [
           ...previous,
-          ...chosen.map((d, i) => ({ id: d.id, title: d.title, category: d.category, content: bodies[i] })),
+          ...chosen.map((d, i) => {
+            if (!turn.mask) return { id: d.id, title: d.title, category: d.category, content: bodies[i] }
+            const title = redact(d.title, ownNames)
+            const body = redact(bodies[i], ownNames)
+            masked += title.count + body.count
+            return { id: d.id, title: title.text, category: d.category, content: body.text }
+          }),
         ]
-        updateTurn(turn.id, { phase: 'answering', released })
+        updateTurn(turn.id, (cur) => ({ phase: 'answering', released, masked: (cur.masked ?? 0) + masked }))
         const answer = await api<AnswerResult>('/ai/answer', {
           method: 'POST',
           body: JSON.stringify({
             question: turn.question,
             questionCt: await turn.questionCt,
             approved: released,
-            index,
+            index: aiIndex(turn.mask),
             hijacked: turn.hijacked,
           }),
         })
@@ -218,7 +248,7 @@ export default function HomePage() {
         updateTurn(turn.id, { phase: 'error', error: errorText(err) })
       }
     },
-    [api, decrypt, docs, index, updateTurn],
+    [api, decrypt, docs, aiIndex, ownNames, updateTurn],
   )
 
   const deny = useCallback(
@@ -249,6 +279,41 @@ export default function HomePage() {
   }, [tab, authenticated, loadReceipts])
 
   const busy = vaultState !== 'idle'
+  const inFlight = turns.some((x) => x.phase === 'planning' || x.phase === 'decrypting' || x.phase === 'answering')
+  const runGuided = (q: string, hijacked = false) => {
+    setTab('ask')
+    ask(q, { hijacked })
+  }
+  const guide: GuideStep[] = [
+    {
+      key: 'vault',
+      title: t('guide.s1.title'),
+      body: t('guide.s1.body'),
+      done: storedCount > 0,
+      action: { label: t('vault.loadDemo'), onClick: () => addDocs(DEMO_DOCS), disabled: busy },
+    },
+    {
+      key: 'consent',
+      title: t('guide.s2.title'),
+      body: t('guide.s2.body'),
+      done: turns.some((x) => !x.hijacked && !!x.answer),
+      action: { label: t('guide.s2.action'), onClick: () => runGuided(DEMO_QUESTIONS[lang].surgery), disabled: !docs.length || busy || inFlight },
+    },
+    {
+      key: 'redteam',
+      title: t('guide.s3.title'),
+      body: t('guide.s3.body'),
+      done: turns.some((x) => x.hijacked && !!x.answer),
+      action: { label: t('guide.s3.action'), onClick: () => runGuided(DEMO_QUESTIONS[lang].invoice, true), disabled: !docs.length || busy || inFlight },
+    },
+    {
+      key: 'operator',
+      title: t('guide.s4.title'),
+      body: t('guide.s4.body'),
+      done: false,
+      action: isOperator ? { label: t('guide.s4.action'), href: '/operator' } : { label: t('guide.s4.noRole'), disabled: true },
+    },
+  ]
 
   return (
     <>
@@ -272,6 +337,7 @@ export default function HomePage() {
       </header>
 
       <main className="page grid">
+        <DemoGuide steps={guide} onRestart={resetVault} restartDisabled={busy || inFlight || (!docs.length && !turns.length)} />
         <aside>
           <section className="card">
             <div className="row">
@@ -294,9 +360,7 @@ export default function HomePage() {
                 <span className="spinner" /> {t('vault.decryptingTitles')}
               </div>
             ) : docs.length === 0 && locked ? null : docs.length === 0 ? (
-              <div className="alert alert-ok small">
-                {t('vault.empty')}
-              </div>
+              <p className="sub" style={{ marginBottom: 0 }}>{t('vault.empty')}</p>
             ) : (
               <ul className="doc-list">
                 {docs.map((d) => (
@@ -317,18 +381,13 @@ export default function HomePage() {
             )}
 
             <div className="row" style={{ marginTop: 12 }}>
-              {docs.length === 0 && vaultState !== 'loading' && (
-                <button className="btn btn-primary btn-sm" onClick={() => addDocs(DEMO_DOCS)} disabled={busy}>
-                  {t('vault.loadDemo')}
-                </button>
-              )}
               <button className="btn btn-sm" onClick={() => setAdding((a) => !a)} disabled={busy}>
                 {adding ? t('vault.cancel') : t('vault.add')}
               </button>
               {docs.length > 0 && (
                 <label className="switch" style={{ margin: 0 }}>
                   <input type="checkbox" checked={showCiphertext} onChange={(e) => setShowCiphertext(e.target.checked)} />
-                  {t('vault.serverSees')}
+                  <Glyph name="eye" /> {t('vault.serverSees')}
                 </label>
               )}
             </div>
@@ -366,11 +425,6 @@ export default function HomePage() {
                 </button>
               </form>
             )}
-            {docs.length > 0 && (
-              <button className="btn btn-sm btn-danger" style={{ marginTop: 12 }} onClick={resetVault} disabled={busy}>
-                {t('vault.reset')}
-              </button>
-            )}
           </section>
         </aside>
 
@@ -391,8 +445,8 @@ export default function HomePage() {
                   <p className="sub">{t('ask.intro')}</p>
                 )}
                 {turns.map((t) => (
+                  <div className="turn" id={`turn-${t.id}`} key={t.id}>
                   <TurnView
-                    key={t.id}
                     turn={t}
                     titles={titles}
                     total={docs.length}
@@ -419,7 +473,9 @@ export default function HomePage() {
                     onDenyFollowUps={() =>
                       deny(t, t.answer?.followUps.map((f) => f.id) ?? [], 'Follow-up request after reading documents', false)
                     }
+                    onToggleMask={() => updateTurn(t.id, (cur) => ({ mask: !cur.mask }))}
                   />
+                  </div>
                 ))}
               </div>
 
@@ -446,19 +502,6 @@ export default function HomePage() {
                   <button className="btn btn-primary" disabled={!question.trim() || docs.length === 0}>
                     {t('ask.submit')}
                   </button>
-                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(DEMO_QUESTIONS[lang].surgery)}>
-                    {t('ask.trySurgery')}
-                  </button>
-                  <button type="button" className="btn btn-sm" onClick={() => setQuestion(DEMO_QUESTIONS[lang].invoice)}>
-                    {t('ask.tryInvoice')}
-                  </button>
-                  <span className="spacer" />
-                  <label className="switch" style={{ margin: 0 }} title={t('ask.hijackHint')}>
-                    <input type="checkbox" checked={hijacked} onChange={(e) => setHijacked(e.target.checked)} />
-                    <span>
-                      {t('ask.simulate')} <strong style={{ color: 'var(--danger)' }}>{t('ask.hijacked')}</strong>
-                    </span>
-                  </label>
                 </div>
               </form>
             </>
@@ -481,6 +524,7 @@ function TurnView(props: {
   onDeny: () => void
   onReleaseFollowUps: () => void
   onDenyFollowUps: () => void
+  onToggleMask: () => void
 }) {
   const { turn: t, titles, total } = props
   const { t: tr } = useI18n()
@@ -520,6 +564,12 @@ function TurnView(props: {
               </span>
             </label>
           ))}
+          {t.phase === 'consent' && (
+            <label className="switch mask-switch">
+              <input type="checkbox" checked={t.mask} onChange={props.onToggleMask} />
+              <Glyph name="eye" /> {tr('mask.toggle')}
+            </label>
+          )}
           {t.phase === 'consent' && (
             <div className="row" style={{ marginTop: 10 }}>
               <button className="btn btn-primary btn-sm" onClick={props.onRelease} disabled={!t.selection.length}>
@@ -567,6 +617,20 @@ function TurnView(props: {
                   </span>
                 ))}
               </div>
+            )}
+            {t.released.length > 0 && (
+              <details className="sent">
+                <summary>
+                  {t.mask ? `${tr('mask.count', { n: t.masked ?? 0 })} · ` : ''}
+                  {tr('mask.show')}
+                </summary>
+                {t.released.map((r) => (
+                  <div key={r.id}>
+                    <strong className="small">{r.title}</strong>
+                    <pre>{r.content}</pre>
+                  </div>
+                ))}
+              </details>
             )}
           </div>
 

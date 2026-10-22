@@ -8,6 +8,9 @@ export interface PlainDoc {
   body: string
 }
 
+/** The persona the sample documents belong to; her name is masked like the user's own before AI disclosure. */
+export const DEMO_PERSONA = 'Linh Tran'
+
 export const DEMO_QUESTION =
   'My surgeon just quoted my ACL surgery. How much will my insurance pay, how much do I pay myself, and can I afford it this month?'
 

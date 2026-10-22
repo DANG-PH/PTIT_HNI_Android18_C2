@@ -739,3 +739,38 @@ tbody tr:hover td { background: color-mix(in srgb, var(--ink) 3%, transparent); 
   .tilt:hover { transform: none; }
   .reveal { animation: none !important; }
 }
+
+/* Guided demo: one path through the product, always showing the next step. */
+.guide { grid-column: 1 / -1; }
+.guide .eyebrow { margin-right: 6px; }
+.guide-title { font-size: 15px; margin: 0; }
+.guide-steps {
+  list-style: none; margin: 14px 0 0; padding: 0;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+}
+@media (max-width: 1000px) { .guide-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .guide-steps { grid-template-columns: 1fr; } }
+.guide-step {
+  display: flex; gap: 10px; padding: 12px; border: 1px solid var(--border);
+  border-radius: var(--radius-control); background: var(--surface); transition: box-shadow 0.2s var(--ease);
+}
+.guide-step.current { border-color: var(--text); box-shadow: var(--glow); }
+.guide-step.done { background: var(--surface-2); }
+.guide-step.done h3 { color: var(--muted); }
+.guide-num {
+  flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: 700; border: 1px solid var(--border);
+}
+.guide-step.current .guide-num { background: var(--fill-bg); color: var(--fill-fg); border-color: var(--fill-bg); }
+.guide-step.done .guide-num { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.guide-body { min-width: 0; }
+.guide-body h3 { font-size: 14px; margin: 2px 0 4px; }
+.guide-body p { font-size: 12.5px; color: var(--muted); margin: 0 0 10px; line-height: 1.45; }
+.turn { display: grid; gap: 14px; scroll-margin-top: 80px; }
+.mask-switch { margin-top: 10px; }
+.sent { margin-top: 8px; font-size: 13px; }
+.sent summary { cursor: pointer; color: var(--muted); }
+.sent pre {
+  white-space: pre-wrap; font-family: var(--mono); font-size: 11.5px; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px; max-height: 220px; overflow: auto; margin: 4px 0 10px;
+}
