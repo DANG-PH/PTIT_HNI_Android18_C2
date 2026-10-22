@@ -67,7 +67,6 @@ export default function HomePage() {
   const [receipts, setReceipts] = useState<(Receipt & { question?: string })[]>([])
   const [receiptsState, setReceiptsState] = useState<'idle' | 'loading'>('idle')
 
-  const name = (getValueFromIdToken('given_name') as string) || (lang === 'vi' ? 'bạn' : 'there')
   const isOperator = hasRealmRole('ntk-operator')
   const titles = useMemo(() => new Map(docs.map((d) => [d.id, d.title])), [docs])
   const index = useMemo(() => docs.map((d) => ({ id: d.id, title: d.title, category: d.category })), [docs])
@@ -322,7 +321,9 @@ export default function HomePage() {
           <span className="brand-mark">N</span> NeedToKnow
         </div>
         <nav>
-          <span className="muted small">{t('nav.hi', { name })}</span>
+          <span className="pill">
+            <Glyph name="lock" /> {t('nav.signedIn')}
+          </span>
           {isOperator && (
             <a className="btn btn-sm" href="/operator">
               {t('nav.operator')}

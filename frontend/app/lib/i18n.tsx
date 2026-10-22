@@ -7,7 +7,7 @@ const STORAGE_KEY = 'ntk-lang'
 
 const en = {
   'brand.builtWith': 'Built with TideCloak',
-  'nav.hi': 'Hi, {name}',
+  'nav.signedIn': 'Signed in with Tide',
   'nav.operator': 'Operator console',
   'nav.signOut': 'Sign out',
   'nav.backToVault': 'Back to my vault',
@@ -187,7 +187,7 @@ export type I18nKey = keyof typeof en
 
 const vi: Record<I18nKey, string> = {
   'brand.builtWith': 'Xây dựng với TideCloak',
-  'nav.hi': 'Xin chào, {name}',
+  'nav.signedIn': 'Đã đăng nhập bằng Tide',
   'nav.operator': 'Bảng điều khiển vận hành',
   'nav.signOut': 'Đăng xuất',
   'nav.backToVault': 'Về kho của tôi',
