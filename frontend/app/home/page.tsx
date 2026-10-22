@@ -2,7 +2,7 @@
 
 import { useTideCloak } from '@tidecloak/nextjs'
 import { useRouter } from 'next/navigation'
-import { Fragment, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { DemoGuide, type GuideStep } from '../components/DemoGuide'
 import { Glyph, type GlyphName } from '../components/Glyph'
 import { ThresholdRing } from '../components/ThresholdRing'
@@ -72,6 +72,12 @@ export default function HomePage() {
   const [tab, setTab] = useState<'ask' | 'receipts'>('ask')
   const [question, setQuestion] = useState('')
   const [turns, setTurns] = useState<Turn[]>([])
+  const threadRef = useRef<HTMLDivElement>(null)
+  // Keep the newest step of the conversation in view inside the chat panel.
+  useEffect(() => {
+    const el = threadRef.current
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+  }, [turns])
 
   const [receipts, setReceipts] = useState<(Receipt & { question?: string })[]>([])
   const [receiptsState, setReceiptsState] = useState<'idle' | 'loading'>('idle')
@@ -346,16 +352,10 @@ export default function HomePage() {
         </nav>
       </header>
 
-      <main className="page grid">
-        <section className="stats" aria-label={t('stats.label')}>
-          <Stat glyph="lock" value={storedCount} label={t('stats.sealed')} />
-          <Stat glyph="key" value={0} label={t('stats.keys')} note={t('stats.keysNote')} emphasis />
-          <Stat glyph="bot" value={turns.reduce((n, x) => n + (x.answer ? x.released.length : 0), 0)} label={t('stats.released')} />
-          <Stat glyph="eye" value={turns.reduce((n, x) => n + (x.masked ?? 0), 0)} label={t('stats.masked')} />
-        </section>
-        <DemoGuide steps={guide} onRestart={resetVault} restartDisabled={busy || inFlight || (!docs.length && !turns.length)} />
-        <aside>
-          <section className="card">
+      <main className="page app">
+        <div className="workspace">
+        <aside className="vault-col">
+          <section className="card vault-card">
             <div className="row">
               <h2>{t('vault.title')}</h2>
               <span className="spacer" />
@@ -363,6 +363,7 @@ export default function HomePage() {
             </div>
             <p className="sub">{t('vault.sub')}</p>
 
+            <div className="vault-scroll">
             {locked && docs.length === 0 && (
               <div className="alert alert-warn small" style={{ marginBottom: 10 }}>
                 {t('vault.locked')}{' '}
@@ -403,26 +404,6 @@ export default function HomePage() {
               </ul>
             )}
 
-            <div className="row" style={{ marginTop: 12 }}>
-              <button className="btn btn-sm" onClick={() => setAdding((a) => !a)} disabled={busy}>
-                {adding ? t('vault.cancel') : t('vault.add')}
-              </button>
-              {docs.length > 0 && (
-                <label className="switch" style={{ margin: 0 }}>
-                  <input type="checkbox" checked={showCiphertext} onChange={(e) => setShowCiphertext(e.target.checked)} />
-                  <Glyph name="eye" /> {t('vault.serverSees')}
-                </label>
-              )}
-            </div>
-            {vaultState === 'working' ? (
-              <div className="ring-row" style={{ marginTop: 12 }}>
-                <ThresholdRing state="working" size="sm" />
-                <p>{t('ring.sealing')}</p>
-              </div>
-            ) : (
-              vaultMsg && <p className="small muted" style={{ marginBottom: 0 }}>{vaultMsg}</p>
-            )}
-
             {adding && (
               <form
                 onSubmit={(e) => {
@@ -455,10 +436,33 @@ export default function HomePage() {
                 </button>
               </form>
             )}
+            </div>
+            <div className="vault-foot">
+            <div className="row">
+              <button className="btn btn-sm" onClick={() => setAdding((a) => !a)} disabled={busy}>
+                {adding ? t('vault.cancel') : t('vault.add')}
+              </button>
+              {docs.length > 0 && (
+                <label className="switch" style={{ margin: 0 }}>
+                  <input type="checkbox" checked={showCiphertext} onChange={(e) => setShowCiphertext(e.target.checked)} />
+                  <Glyph name="eye" /> {t('vault.serverSees')}
+                </label>
+              )}
+            </div>
+            {vaultState === 'working' ? (
+              <div className="ring-row" style={{ marginTop: 12 }}>
+                <ThresholdRing state="working" size="sm" />
+                <p>{t('ring.sealing')}</p>
+              </div>
+            ) : (
+              vaultMsg && <p className="small muted" style={{ marginBottom: 0 }}>{vaultMsg}</p>
+            )}
+
+            </div>
           </section>
         </aside>
 
-        <section className="card">
+        <section className="card chat-card">
           <div className="tabs">
             <button className={`tab ${tab === 'ask' ? 'active' : ''}`} onClick={() => setTab('ask')}>
               {t('tab.ask')}
@@ -470,9 +474,14 @@ export default function HomePage() {
 
           {tab === 'ask' ? (
             <>
-              <div className="thread">
+              <div className="thread chat-scroll" ref={threadRef}>
                 {turns.length === 0 && (
-                  <p className="sub">{t('ask.intro')}</p>
+                  <div className="chat-empty">
+                    <img src="/logo.png" alt="" width={56} height={56} />
+                    <h3>{t('ask.emptyTitle')}</h3>
+                    <p>{t('ask.intro')}</p>
+                    <span className="pill">{t('ask.emptyHint')}</span>
+                  </div>
                 )}
                 {turns.map((t) => (
                   <div className="turn" id={`turn-${t.id}`} key={t.id}>
@@ -537,9 +546,21 @@ export default function HomePage() {
               </form>
             </>
           ) : (
-            <ReceiptsView receipts={receipts} titles={titles} loading={receiptsState === 'loading'} />
+            <div className="chat-scroll">
+              <ReceiptsView receipts={receipts} titles={titles} loading={receiptsState === 'loading'} />
+            </div>
           )}
         </section>
+        <aside className="side-col">
+        <section className="stats stats-side" aria-label={t('stats.label')}>
+          <Stat glyph="lock" value={storedCount} label={t('stats.sealed')} />
+          <Stat glyph="key" value={0} label={t('stats.keys')} note={t('stats.keysNote')} emphasis />
+          <Stat glyph="bot" value={turns.reduce((n, x) => n + (x.answer ? x.released.length : 0), 0)} label={t('stats.released')} />
+          <Stat glyph="eye" value={turns.reduce((n, x) => n + (x.masked ?? 0), 0)} label={t('stats.masked')} />
+        </section>
+        <DemoGuide steps={guide} onRestart={resetVault} restartDisabled={busy || inFlight || (!docs.length && !turns.length)} />
+        </aside>
+        </div>
       </main>
     </>
   )
