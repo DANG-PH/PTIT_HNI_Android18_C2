@@ -999,3 +999,11 @@ tbody tr:hover td { background: color-mix(in srgb, var(--ink) 3%, transparent); 
 .vault-empty .sub { margin: 0; }
 .chat-empty .btn { margin-top: 6px; }
 .chat-empty .chat-history { margin-top: 10px; font-size: 12px; max-width: 380px; }
+/* Side column: finished guide steps drop their spent button; on desktop the trust strip stays pinned
+   at the top while the guide scrolls beneath it, so "0 keys" is never scrolled out of view. */
+.guide-step.done .btn { display: none; }
+.guide-step.done .guide-body h3 { margin: 3px 0 0; }
+@media (min-width: 1201px) {
+  .side-col { scroll-padding-top: 190px; }
+  .side-col .stats-side { position: sticky; top: 0; z-index: 2; background: var(--bg); padding-bottom: 4px; }
+}

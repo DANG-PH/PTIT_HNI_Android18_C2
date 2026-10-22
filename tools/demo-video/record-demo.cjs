@@ -38,7 +38,7 @@ async function signIn(page, r, user, pass) {
   await page.waitForURL(/tideprotocol/, { timeout: 60000 });
   await tideLogin(page, user, pass);
   await page.waitForURL(/\/home/, { timeout: 120000 });
-  await page.locator('.doc, .alert').first().waitFor({ timeout: 90000 });
+  await page.locator('.doc, .alert, .vault-empty').first().waitFor({ timeout: 90000 });
   await page.waitForTimeout(1200);
 }
 
