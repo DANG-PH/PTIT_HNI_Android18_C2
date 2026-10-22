@@ -44,6 +44,9 @@ Bố cục theo gợi ý của đề bài: **possibility → constraint → prot
 🎬 Chuyển sang tab 2, mở **Operator console**: toàn bộ bảng dữ liệu là bản mã. Chọn **Try to decrypt** trên một tài liệu của Linh: thông báo "Refused by the Tide network". Nếu đủ thời lượng, chọn thêm **Run rogue agent**.
 🎙 *"Even the platform operator, with the whole database and their own Tide session, can't decrypt Linh's files. And making yourself more powerful needs 2 of 3 admins to approve, cryptographically."*
 
+> **Phương án thay thế cho câu thoại về quyền (khoảng 8 giây):** chạy `bash infra/tidecloak/try-escalate.sh <tài khoản Linh>` trong terminal. Server trả về mã thành công nhưng danh sách vai trò không đổi; thay vào đó xuất hiện change request `GRANT_ROLES` chờ chữ ký enclave.
+> 🎙 *"Even with the server's root password, an attacker only files a request. It does nothing until Tide admins sign it."*
+
 ## 1:52 – 2:00 · What changes
 🎬 Quay lại tab 1, mở **Disclosure receipts**.
 🎙 *"Every disclosure is on Linh's receipt. NeedToKnow: AI help for the documents that matter most, on a need-to-know basis. Built with TideCloak."*
