@@ -51,9 +51,9 @@ const en = {
   'landing.governance.title': 'No single credential can grant power',
   'landing.governance.body':
     "Even the server's root admin credential can only file a role change. It applies only after Tide admins sign it in their own enclaves.",
-  'landing.cta.title': "Try it with Linh's synthetic vault.",
+  'landing.cta.title': 'Try it with a synthetic sample vault.',
   'landing.cta.body':
-    'Ask about her ACL surgery and release only what the answer needs. Then switch on the hijacked-AI simulation and watch nothing leak.',
+    'Ask about a knee-surgery bill and release only what the answer needs. Then run the hijacked-AI step and watch nothing leak.',
 
   'mock.sealed': '{n} sealed',
   'mock.tagRequested': 'requested',
@@ -231,9 +231,9 @@ const vi: Record<I18nKey, string> = {
   'landing.governance.title': 'Không credential đơn lẻ nào tự cấp được quyền',
   'landing.governance.body':
     'Kể cả credential quản trị gốc của máy chủ cũng chỉ tạo được change request. Thay đổi chỉ có hiệu lực khi các quản trị viên Tide ký trong enclave của riêng họ.',
-  'landing.cta.title': 'Thử với kho tài liệu giả lập của Linh.',
+  'landing.cta.title': 'Thử với một kho tài liệu mẫu giả lập.',
   'landing.cta.body':
-    'Hỏi về ca mổ dây chằng ACL của Linh và chỉ cho phép những gì câu trả lời cần. Sau đó bật mô phỏng AI bị chiếm quyền và thấy không có gì bị rò rỉ.',
+    'Hỏi về chi phí ca mổ đầu gối và chỉ cho phép những gì câu trả lời cần. Sau đó chạy bước AI bị chiếm quyền và thấy không có gì bị rò rỉ.',
 
   'mock.sealed': '{n} đã niêm phong',
   'mock.tagRequested': 'đang xin',

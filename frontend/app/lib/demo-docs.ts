@@ -1,4 +1,4 @@
-// Synthetic documents for the demo persona, Linh Tran. None of this is real data.
+// Synthetic sample documents for a fictional account holder, "Demo User". None of this is real data.
 
 export type Category = 'health' | 'insurance' | 'finance' | 'legal' | 'identity' | 'other'
 
@@ -8,8 +8,8 @@ export interface PlainDoc {
   body: string
 }
 
-/** The persona the sample documents belong to; her name is masked like the user's own before AI disclosure. */
-export const DEMO_PERSONA = 'Linh Tran'
+/** The fictional holder of the sample documents; masked like the user's own name before AI disclosure. */
+export const DEMO_PERSONA = 'Demo User'
 
 export const DEMO_QUESTION =
   'My surgeon just quoted my ACL surgery. How much will my insurance pay, how much do I pay myself, and can I afford it this month?'
@@ -31,7 +31,7 @@ export const DEMO_DOCS: PlainDoc[] = [
     title: 'Health insurance policy: SafeHarbor Gold Hospital & Extras (2026)',
     category: 'insurance',
     body: `SafeHarbor Health: Policy schedule
-Member: Linh Tran (synthetic)    Policy no: SH-GOLD-448812    Start date: 1 March 2024
+Member: Demo User (synthetic)    Policy no: SH-GOLD-448812    Start date: 1 March 2024
 Product: Gold Hospital & Extras
 
 HOSPITAL COVER
@@ -54,7 +54,7 @@ EXCLUSIONS
     title: 'Surgery quote: Riverside Private Hospital, ACL reconstruction',
     category: 'health',
     body: `Riverside Private Hospital: Informed Financial Consent / Quote
-Patient: Linh Tran (synthetic)   Procedure: Arthroscopic ACL reconstruction, right knee
+Patient: Demo User (synthetic)   Procedure: Arthroscopic ACL reconstruction, right knee
 Surgeon: Dr A. Nguyen (orthopaedics)   Planned admission: 18 November 2026 (2 nights)
 
 Estimated charges
@@ -71,7 +71,7 @@ Your insurer may require prior approval for this procedure.`,
     title: 'Knee MRI report: Riverside Imaging (Oct 2026)',
     category: 'health',
     body: `Riverside Imaging: MRI right knee
-Patient: Linh Tran (synthetic)   DOB: 12/05/1994   Date: 9 October 2026
+Patient: Demo User (synthetic)   DOB: 12/05/1994   Date: 9 October 2026
 Findings: Complete tear of the anterior cruciate ligament (ACL). Small bone bruise of the lateral femoral condyle.
 Medial meniscus intact. No fracture.
 Impression: Complete ACL rupture. Orthopaedic referral recommended; arthroscopic reconstruction is a reasonable option for an active patient.`,
@@ -80,7 +80,7 @@ Impression: Complete ACL rupture. Orthopaedic referral recommended; arthroscopic
     title: 'Bank statement: Everyday account, September 2026',
     category: 'finance',
     body: `Harbour Bank: Everyday Account statement, 1–30 September 2026
-Account holder: Linh Tran (synthetic)   BSB 000-123   Account 4455 6677
+Account holder: Demo User (synthetic)   BSB 000-123   Account 4455 6677
 Opening balance: $7,410.22
 Credits:  Salary (Acme Design Pty Ltd) $6,200.00
 Debits:   Rent (14 Harbour St) $2,100.00 · Groceries $640.40 · Utilities $212.10 · Transport $180.00 · Phone $55.00 · Other $582.72
@@ -88,10 +88,10 @@ Closing balance (30 Sep 2026): $9,840.00
 Linked savings account (Rainy-day): $4,500.00`,
   },
   {
-    title: 'Passport: Linh Tran',
+    title: 'Passport: Demo User',
     category: 'identity',
     body: `PASSPORT (synthetic specimen)
-Surname: TRAN   Given names: LINH   Nationality: VNM
+Surname: USER   Given names: DEMO   Nationality: VNM
 Passport no: N1234567   Date of birth: 12 MAY 1994   Sex: F
 Date of issue: 03 JAN 2022   Date of expiry: 03 JAN 2032   Place of birth: HA NOI`,
   },
@@ -99,7 +99,7 @@ Date of issue: 03 JAN 2022   Date of expiry: 03 JAN 2032   Place of birth: HA NO
     title: 'Apartment lease: 14 Harbour St, Unit 6',
     category: 'legal',
     body: `Residential Tenancy Agreement (synthetic)
-Tenant: Linh Tran   Landlord: Harbour Property Group
+Tenant: Demo User   Landlord: Harbour Property Group
 Premises: Unit 6, 14 Harbour St   Term: 12 months from 1 February 2026
 Rent: $2,100 per month, payable on the 1st. Bond: $4,200.
 Break-lease fee: 4 weeks' rent if the tenant ends the lease before 31 January 2027.`,
@@ -108,7 +108,7 @@ Break-lease fee: 4 weeks' rent if the tenant ends the lease before 31 January 20
     title: 'Clinic invoice: CityPhysio, October 2026',
     category: 'health',
     body: `CityPhysio: Tax invoice #CP-20931
-Patient: Linh Tran (synthetic)   Provider: J. Smith, physiotherapist
+Patient: Demo User (synthetic)   Provider: J. Smith, physiotherapist
 - 02 Oct 2026  Initial consultation (knee) ........ $110
 - 09 Oct 2026  Follow-up consultation ............. $90
 - 16 Oct 2026  Follow-up consultation ............. $90
